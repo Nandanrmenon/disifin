@@ -31,6 +31,8 @@ final ThemeData appTheme = ThemeData(
     unselectedIconTheme: IconThemeData(size: 24),
     selectedLabelStyle: const TextStyle(fontSize: 12),
     unselectedLabelStyle: const TextStyle(fontSize: 10),
+    backgroundColor: Colors.transparent,
+    enableFeedback: true,
   ),
   listTileTheme: ListTileThemeData(
     shape: RoundedRectangleBorder(
