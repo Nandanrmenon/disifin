@@ -123,7 +123,10 @@ class _TrackListScreenState extends State<TrackListScreen> {
                               radius: 25,
                               child: Icon(Icons.music_note),
                             ),
-                      title: Text(track['Name'] ?? 'Unknown'),
+                      title: Text(
+                        track['Name'] ?? 'Unknown',
+                        maxLines: 1,
+                      ),
                       subtitle: Text(track['Album'] ?? 'Unknown'),
                       onTap: () {
                         AudioPlayerService.play(

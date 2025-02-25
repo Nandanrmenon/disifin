@@ -1,3 +1,4 @@
+import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
 import 'package:disifin/views/login_screen.dart';
@@ -27,17 +28,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Disifin',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 147, 102, 243),
-          brightness: Brightness.dark,
-          surface: Colors.black,
-          outline: Colors.white10,
-          outlineVariant: Colors.white10,
-          dynamicSchemeVariant: DynamicSchemeVariant.content,
-        ),
-        useMaterial3: true,
-      ),
+      theme: appTheme,
       initialRoute: isLoggedIn
           ? '/main'
           : '/login', // Set initial route based on login status

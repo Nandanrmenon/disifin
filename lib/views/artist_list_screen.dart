@@ -115,7 +115,10 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                               radius: 25,
                               child: Text(artist['Name']?[0] ?? '?'),
                             ),
-                      title: Text(artist['Name'] ?? 'Unknown'),
+                      title: Text(
+                        artist['Name'] ?? 'Unknown',
+                        maxLines: 1,
+                      ),
                     );
                   },
                 ),

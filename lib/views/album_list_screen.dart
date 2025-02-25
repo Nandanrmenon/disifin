@@ -106,23 +106,29 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                             _serverUrl != null
                         ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
                         : null;
-                    return ListTile(
-                      leading: imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(25),
-                              child: SizedBox(
-                                width: 50,
-                                height: 50,
-                                child:
-                                    Image.network(imageUrl, fit: BoxFit.cover),
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ListTile(
+                        leading: imageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(25),
+                                child: SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: Image.network(imageUrl,
+                                      fit: BoxFit.cover),
+                                ),
+                              )
+                            : const CircleAvatar(
+                                radius: 25,
+                                child: Icon(Icons.album),
                               ),
-                            )
-                          : const CircleAvatar(
-                              radius: 25,
-                              child: Icon(Icons.album),
-                            ),
-                      title: Text(album['Name'] ?? 'Unknown'),
-                      subtitle: Text(artists),
+                        title: Text(
+                          album['Name'] ?? 'Unknown',
+                          maxLines: 1,
+                        ),
+                        subtitle: Text(artists),
+                      ),
                     );
                   },
                 ),
