@@ -28,33 +28,48 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Spacer(),
-              if (AudioPlayerService.currentTrackImageUrl != null &&
-                  AudioPlayerService.currentTrackImageUrl!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    AudioPlayerService.currentTrackImageUrl!,
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: MediaQuery.of(context).size.width * 0.9,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              else
-                Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: MediaQuery.of(context).size.width * 0.9,
-                    color: Theme.of(context).canvasColor,
-                    child:
-                        Card(child: const Icon(Icons.music_note, size: 200))),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  AudioPlayerService.currentTrackName ?? 'Now Playing',
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+              const Spacer(),
+              StreamBuilder<TrackInfo?>(
+                stream: AudioPlayerService.currentTrackStream,
+                builder: (context, snapshot) {
+                  final trackInfo = snapshot.data;
+                  final trackName = trackInfo?.name ?? 'Now Playing';
+                  final trackImageUrl = trackInfo?.imageUrl;
+                  return Column(
+                    children: [
+                      if (trackImageUrl != null && trackImageUrl.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            trackImageUrl,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            height: MediaQuery.of(context).size.width * 0.9,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          height: MediaQuery.of(context).size.width * 0.9,
+                          color: Theme.of(context).canvasColor,
+                          child: const Card(
+                            child: Icon(Icons.music_note, size: 200),
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          trackName,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 20),
               StreamBuilder<Duration?>(
@@ -65,38 +80,34 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     stream: AudioPlayerService.positionStream,
                     builder: (context, snapshot) {
                       final position = snapshot.data ?? Duration.zero;
-                      if (duration.inMilliseconds > 0) {
-                        _sliderValue = position.inMilliseconds.toDouble();
-                        return Column(
-                          children: [
-                            Slider(
-                              value: _sliderValue,
-                              min: 0.0,
-                              max: duration.inMilliseconds.toDouble(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _sliderValue = value;
-                                });
-                              },
-                              onChangeEnd: (value) {
-                                AudioPlayerService.seek(
-                                    Duration(milliseconds: value.toInt()));
-                              },
-                            ),
-                            Row(
-                              children: [
-                                const SizedBox(width: 25),
-                                Text(position.toString().split('.').first),
-                                const Spacer(),
-                                Text(duration.toString().split('.').first),
-                                const SizedBox(width: 25),
-                              ],
-                            ),
-                          ],
-                        );
-                      } else {
-                        return const SizedBox.shrink();
-                      }
+                      _sliderValue = position.inMilliseconds.toDouble();
+                      return Column(
+                        children: [
+                          Slider(
+                            value: _sliderValue,
+                            min: 0.0,
+                            max: duration.inMilliseconds.toDouble(),
+                            onChanged: (value) {
+                              setState(() {
+                                _sliderValue = value;
+                              });
+                            },
+                            onChangeEnd: (value) {
+                              AudioPlayerService.seek(
+                                  Duration(milliseconds: value.toInt()));
+                            },
+                          ),
+                          Row(
+                            children: [
+                              const SizedBox(width: 25),
+                              Text(_formatDuration(position)),
+                              const Spacer(),
+                              Text(_formatDuration(duration)),
+                              const SizedBox(width: 25),
+                            ],
+                          ),
+                        ],
+                      );
                     },
                   );
                 },
@@ -107,7 +118,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.skip_previous),
-                    onPressed: () {},
+                    onPressed: AudioPlayerService.skipToPrevious,
                   ),
                   StreamBuilder<PlayerState>(
                     stream: AudioPlayerService.playerStateStream,
@@ -159,14 +170,64 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_next),
-                    onPressed: () {},
+                    onPressed: AudioPlayerService.skipToNext,
                   ),
                 ],
               ),
-              Spacer(),
+              const SizedBox(height: 20),
+              const Spacer(),
+              Row(
+                children: [
+                  IconButton(
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const QueueView())),
+                      icon: const Icon(Icons.queue_outlined))
+                ],
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return [if (duration.inHours > 0) hours, minutes, seconds].join(':');
+  }
+}
+
+class QueueView extends StatefulWidget {
+  const QueueView({super.key});
+
+  @override
+  State<QueueView> createState() => _QueutViewState();
+}
+
+class _QueutViewState extends State<QueueView> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          'Next Up',
+          style: TextStyle(fontSize: 14),
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: AudioPlayerService.currentQueue.length,
+        itemBuilder: (context, index) {
+          final trackName = AudioPlayerService.currentQueue[index];
+          return ListTile(
+            title: Text(trackName),
+          );
+        },
       ),
     );
   }

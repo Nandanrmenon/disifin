@@ -1,5 +1,12 @@
 import 'package:just_audio/just_audio.dart';
 
+class TrackInfo {
+  final String? name;
+  final String? imageUrl;
+
+  TrackInfo({this.name, this.imageUrl});
+}
+
 class AudioPlayerService {
   static final AudioPlayer _audioPlayer = AudioPlayer();
   static String? currentTrackName;
@@ -10,10 +17,34 @@ class AudioPlayerService {
     try {
       currentTrackName = trackName;
       currentTrackImageUrl = trackImageUrl;
-      await _audioPlayer.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      await _audioPlayer.setAudioSource(AudioSource.uri(
+        Uri.parse(url),
+        tag: TrackInfo(name: trackName, imageUrl: trackImageUrl),
+      ));
       _audioPlayer.play();
     } catch (e) {
       print('Error playing audio: $e');
+    }
+  }
+
+  static Future<void> playQueue(List<String> urls, List<String> trackNames,
+      List<String> trackImageUrls) async {
+    try {
+      final playlist = ConcatenatingAudioSource(
+        children: List.generate(urls.length, (index) {
+          return AudioSource.uri(
+            Uri.parse(urls[index]),
+            tag: TrackInfo(
+                name: trackNames[index], imageUrl: trackImageUrls[index]),
+          );
+        }),
+      );
+      await _audioPlayer.setAudioSource(playlist);
+      currentTrackName = trackNames[0];
+      currentTrackImageUrl = trackImageUrls[0];
+      _audioPlayer.play();
+    } catch (e) {
+      print('Error playing audio queue: $e');
     }
   }
 
@@ -37,6 +68,22 @@ class AudioPlayerService {
     }
   }
 
+  static Future<void> skipToNext() async {
+    try {
+      await _audioPlayer.seekToNext();
+    } catch (e) {
+      print('Error skipping to next track: $e');
+    }
+  }
+
+  static Future<void> skipToPrevious() async {
+    try {
+      await _audioPlayer.seekToPrevious();
+    } catch (e) {
+      print('Error skipping to previous track: $e');
+    }
+  }
+
   static Stream<Duration> get positionStream => _audioPlayer.positionStream;
   static Stream<Duration> get bufferedPositionStream =>
       _audioPlayer.bufferedPositionStream;
@@ -47,4 +94,18 @@ class AudioPlayerService {
   static Future<void> seek(Duration position) async {
     await _audioPlayer.seek(position);
   }
+
+  static List<String> get currentQueue =>
+      _audioPlayer.sequence
+          ?.map((source) => (source.tag as TrackInfo?)?.name ?? 'Unknown Track')
+          .toList() ??
+      [];
+
+  static Stream<TrackInfo?> get currentTrackStream =>
+      _audioPlayer.currentIndexStream.map((index) {
+        if (index != null && index < _audioPlayer.sequence!.length) {
+          return _audioPlayer.sequence![index].tag as TrackInfo?;
+        }
+        return null;
+      });
 }

@@ -129,8 +129,27 @@ class _TrackListScreenState extends State<TrackListScreen> {
                       ),
                       subtitle: Text(track['Album'] ?? 'Unknown'),
                       onTap: () {
-                        AudioPlayerService.play(
-                            audioUrl, track['Name'], imageUrl ?? '');
+                        final List<String> urls = [];
+                        final List<String> trackNames = [];
+                        final List<String> trackImageUrls = [];
+
+                        for (int i = index; i < _tracks.length; i++) {
+                          final track = _tracks[i];
+                          final audioUrl =
+                              '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+                          final imageUrl = track['ImageTags'] != null &&
+                                  track['ImageTags']['Primary'] != null &&
+                                  _serverUrl != null
+                              ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+                              : '';
+
+                          urls.add(audioUrl);
+                          trackNames.add(track['Name'] ?? 'Unknown');
+                          trackImageUrls.add(imageUrl);
+                        }
+
+                        AudioPlayerService.playQueue(
+                            urls, trackNames, trackImageUrls);
                       },
                     );
                   },
