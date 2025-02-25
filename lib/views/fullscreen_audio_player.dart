@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -15,180 +17,222 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text(
-          'Now Playing',
-          style: TextStyle(fontSize: 14),
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const Spacer(),
-              StreamBuilder<TrackInfo?>(
-                stream: AudioPlayerService.currentTrackStream,
-                builder: (context, snapshot) {
-                  final trackInfo = snapshot.data;
-                  final trackName = trackInfo?.name ?? 'Now Playing';
-                  final trackImageUrl = trackInfo?.imageUrl;
-                  return Column(
-                    children: [
-                      if (trackImageUrl != null && trackImageUrl.isNotEmpty)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            trackImageUrl,
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.width * 0.9,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      else
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.9,
-                          height: MediaQuery.of(context).size.width * 0.9,
-                          color: Theme.of(context).canvasColor,
-                          child: const Card(
-                            child: Icon(Icons.music_note, size: 200),
-                          ),
-                        ),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          trackName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+      body: Stack(
+        children: [
+          StreamBuilder<TrackInfo?>(
+            stream: AudioPlayerService.currentTrackStream,
+            builder: (context, snapshot) {
+              final trackInfo = snapshot.data;
+              final trackImageUrl = trackInfo?.imageUrl;
+              return trackImageUrl != null && trackImageUrl.isNotEmpty
+                  ? ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Image.network(
+                        trackImageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
                       ),
+                    )
+                  : Container();
+            },
+          ),
+          BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  AppBar(
+                    leading: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.keyboard_arrow_down),
+                    ),
+                    centerTitle: true,
+                    backgroundColor: Colors.transparent,
+                    title: const Text(
+                      'Now Playing',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    actions: [
+                      IconButton(onPressed: () {}, icon: Icon(Icons.more_vert)),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              StreamBuilder<Duration?>(
-                stream: AudioPlayerService.durationStream,
-                builder: (context, snapshot) {
-                  final duration = snapshot.data ?? Duration.zero;
-                  return StreamBuilder<Duration>(
-                    stream: AudioPlayerService.positionStream,
+                  ),
+                  const Spacer(),
+                  StreamBuilder<TrackInfo?>(
+                    stream: AudioPlayerService.currentTrackStream,
                     builder: (context, snapshot) {
-                      final position = snapshot.data ?? Duration.zero;
-                      _sliderValue = position.inMilliseconds.toDouble();
+                      final trackInfo = snapshot.data;
+                      final trackName = trackInfo?.name ?? 'Now Playing';
+                      final trackImageUrl = trackInfo?.imageUrl;
                       return Column(
                         children: [
-                          Slider(
-                            value: _sliderValue,
-                            min: 0.0,
-                            max: duration.inMilliseconds.toDouble(),
-                            onChanged: (value) {
-                              setState(() {
-                                _sliderValue = value;
-                              });
-                            },
-                            onChangeEnd: (value) {
-                              AudioPlayerService.seek(
-                                  Duration(milliseconds: value.toInt()));
-                            },
-                          ),
-                          Row(
-                            children: [
-                              const SizedBox(width: 25),
-                              Text(_formatDuration(position)),
-                              const Spacer(),
-                              Text(_formatDuration(duration)),
-                              const SizedBox(width: 25),
-                            ],
+                          if (trackImageUrl != null && trackImageUrl.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                trackImageUrl,
+                                width: MediaQuery.of(context).size.width * 0.9,
+                                height: MediaQuery.of(context).size.width * 0.9,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          else
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: MediaQuery.of(context).size.width * 0.9,
+                              color: Theme.of(context).canvasColor,
+                              child: const Card(
+                                child: Icon(Icons.music_note, size: 200),
+                              ),
+                            ),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              trackName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       );
                     },
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: AudioPlayerService.skipToPrevious,
                   ),
-                  StreamBuilder<PlayerState>(
-                    stream: AudioPlayerService.playerStateStream,
+                  const SizedBox(height: 20),
+                  StreamBuilder<Duration?>(
+                    stream: AudioPlayerService.durationStream,
                     builder: (context, snapshot) {
-                      final playerState = snapshot.data;
-                      final processingState = playerState?.processingState;
-                      final playing = playerState?.playing;
-                      if (processingState == ProcessingState.loading ||
-                          processingState == ProcessingState.buffering) {
-                        return const CircularProgressIndicator();
-                      } else if (playing != true) {
-                        return IconButton.filled(
-                          icon: const Icon(Icons.play_arrow),
-                          iconSize: 48.0,
-                          style: ButtonStyle(
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15)),
-                            ),
-                          ),
-                          onPressed: AudioPlayerService.resume,
-                        );
-                      } else if (processingState != ProcessingState.completed) {
-                        return IconButton.filled(
-                          icon: const Icon(Icons.pause),
-                          iconSize: 48.0,
-                          style: ButtonStyle(
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50)),
-                            ),
-                          ),
-                          onPressed: AudioPlayerService.pause,
-                        );
-                      } else {
-                        return IconButton.filled(
-                          icon: const Icon(Icons.replay),
-                          iconSize: 48.0,
-                          style: ButtonStyle(
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                          onPressed: AudioPlayerService.resume,
-                        );
-                      }
+                      final duration = snapshot.data ?? Duration.zero;
+                      return StreamBuilder<Duration>(
+                        stream: AudioPlayerService.positionStream,
+                        builder: (context, snapshot) {
+                          final position = snapshot.data ?? Duration.zero;
+                          _sliderValue = position.inMilliseconds.toDouble();
+                          return Column(
+                            children: [
+                              Slider(
+                                value: _sliderValue,
+                                min: 0.0,
+                                max: duration.inMilliseconds.toDouble(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _sliderValue = value;
+                                  });
+                                },
+                                onChangeEnd: (value) {
+                                  AudioPlayerService.seek(
+                                      Duration(milliseconds: value.toInt()));
+                                },
+                              ),
+                              Row(
+                                children: [
+                                  const SizedBox(width: 25),
+                                  Text(_formatDuration(position)),
+                                  const Spacer(),
+                                  Text(_formatDuration(duration)),
+                                  const SizedBox(width: 25),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: AudioPlayerService.skipToNext,
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.skip_previous),
+                        onPressed: AudioPlayerService.skipToPrevious,
+                      ),
+                      SizedBox(width: 20),
+                      StreamBuilder<PlayerState>(
+                        stream: AudioPlayerService.playerStateStream,
+                        builder: (context, snapshot) {
+                          final playerState = snapshot.data;
+                          final processingState = playerState?.processingState;
+                          final playing = playerState?.playing;
+                          if (processingState == ProcessingState.loading ||
+                              processingState == ProcessingState.buffering) {
+                            return const CircularProgressIndicator();
+                          } else if (playing != true) {
+                            return IconButton.filled(
+                              icon: const Icon(Icons.play_arrow),
+                              iconSize: 48.0,
+                              style: ButtonStyle(
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15)),
+                                ),
+                              ),
+                              onPressed: AudioPlayerService.resume,
+                            );
+                          } else if (processingState !=
+                              ProcessingState.completed) {
+                            return IconButton.filled(
+                              icon: const Icon(Icons.pause),
+                              iconSize: 48.0,
+                              style: ButtonStyle(
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50)),
+                                ),
+                              ),
+                              onPressed: AudioPlayerService.pause,
+                            );
+                          } else {
+                            return IconButton.filled(
+                              icon: const Icon(Icons.replay),
+                              iconSize: 48.0,
+                              style: ButtonStyle(
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                              onPressed: AudioPlayerService.resume,
+                            );
+                          }
+                        },
+                      ),
+                      SizedBox(width: 20),
+                      IconButton(
+                        icon: const Icon(Icons.skip_next),
+                        onPressed: AudioPlayerService.skipToNext,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {}, icon: Icon(Icons.lyrics_outlined)),
+                      Spacer(),
+                      IconButton(
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const QueueView())),
+                          icon: const Icon(Icons.queue_outlined))
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              const Spacer(),
-              Row(
-                children: [
-                  IconButton(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const QueueView())),
-                      icon: const Icon(Icons.queue_outlined))
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

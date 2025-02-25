@@ -77,36 +77,108 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _urlController,
-              decoration: const InputDecoration(labelText: 'URL'),
-            ),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            if (_isLoading) const CircularProgressIndicator(),
-            if (_errorMessage != null)
-              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _login,
-              child: const Text('Login'),
-            ),
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [const Color(0xFF3F3F3F), Colors.black],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 60,
+                        left: 50,
+                        child: Icon(Icons.music_note,
+                            size: 28, color: Colors.white.withOpacity(0.1)),
+                      ),
+                      Positioned(
+                        top: 100,
+                        left: 180,
+                        child: Icon(Icons.headset,
+                            size: 108, color: Colors.white.withOpacity(0.1)),
+                      ),
+                      Positioned(
+                        top: 150,
+                        left: 100,
+                        child: Icon(Icons.album,
+                            size: 48, color: Colors.white.withOpacity(0.1)),
+                      ),
+                      Positioned(
+                        top: 250,
+                        left: 50,
+                        child: Icon(Icons.library_music,
+                            size: 48, color: Colors.white.withOpacity(0.1)),
+                      ),
+                      Positioned(
+                        top: 250,
+                        left: 150,
+                        child: Icon(Icons.audiotrack,
+                            size: 48, color: Colors.white.withOpacity(0.1)),
+                      ),
+                      Positioned(
+                        top: 210,
+                        left: 250,
+                        child: Icon(Icons.album,
+                            size: 78, color: Colors.white.withOpacity(0.1)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Text(
+                'Disifin',
+                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Jellyfin Music Player',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
+              ),
+              const SizedBox(height: 20),
+              Text('Login to your Jellyfin server'),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _urlController,
+                decoration: const InputDecoration(labelText: 'URL'),
+              ),
+              SizedBox(
+                height: 8,
+              ),
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Username'),
+              ),
+              SizedBox(
+                height: 8,
+              ),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              if (_isLoading) const CircularProgressIndicator(),
+              if (_errorMessage != null)
+                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              FilledButton(
+                onPressed: _isLoading ? null : _login,
+                child: const Text('Login'),
+              ),
+              SizedBox(
+                height: 40,
+              ),
+            ],
+          ),
         ),
       ),
     );
