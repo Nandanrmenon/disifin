@@ -31,7 +31,9 @@ class HomePage extends StatelessWidget {
               child: Column(
                 children: [
                   SizedBox(height: 200),
-                  Container(decoration: BoxDecoration(),child: Icon(Icons.music_note, size: 100)),
+                  Container(
+                      decoration: BoxDecoration(),
+                      child: Icon(Icons.music_note, size: 100)),
                   const SizedBox(height: 16),
                   Text(
                     'Start playing some music',
@@ -49,46 +51,57 @@ class HomePage extends StatelessWidget {
               ),
             ),
           if (AudioPlayerService.history.isNotEmpty)
-            SizedBox(
-              height: 150,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: AudioPlayerService.history.length,
-                itemBuilder: (context, index) {
-                  final trackInfo = AudioPlayerService.history[index];
-                  return Card(
-                    child: Column(
-                      children: [
-                        if (trackInfo.imageUrl != null &&
-                            trackInfo.imageUrl!.isNotEmpty)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              trackInfo.imageUrl!,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: AudioPlayerService.history.length,
+                  itemBuilder: (context, index) {
+                    final trackInfo = AudioPlayerService.history[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (trackInfo.imageUrl != null &&
+                              trackInfo.imageUrl!.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                trackInfo.imageUrl!,
+                                width: 150,
+                                height: 150,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          else
+                            Container(
                               width: 100,
                               height: 100,
-                              fit: BoxFit.cover,
+                              color: Theme.of(context).canvasColor,
+                              child: const Icon(Icons.music_note, size: 50),
                             ),
-                          )
-                        else
-                          Container(
-                            width: 100,
-                            height: 100,
-                            color: Theme.of(context).canvasColor,
-                            child: const Icon(Icons.music_note, size: 50),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              (trackInfo.name ?? 'Unknown Track').length > 16
+                                  ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 16)}...'
+                                  : trackInfo.name ?? 'Unknown Track',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            trackInfo.name ?? 'Unknown Track',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
         ],
