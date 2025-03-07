@@ -112,6 +112,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     stream: AudioPlayerService.durationStream,
                     builder: (context, snapshot) {
                       final duration = snapshot.data ?? Duration.zero;
+                      if (duration == Duration.zero) {
+                        // Fallback to a default duration if not available
+                        return const Text('Loading...');
+                      }
                       return StreamBuilder<Duration>(
                         stream: AudioPlayerService.positionStream,
                         builder: (context, snapshot) {
@@ -120,7 +124,8 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           return Column(
                             children: [
                               Slider(
-                                value: _sliderValue,
+                                value: _sliderValue.clamp(
+                                    0.0, duration.inMilliseconds.toDouble()),
                                 min: 0.0,
                                 max: duration.inMilliseconds.toDouble(),
                                 onChanged: (value) {

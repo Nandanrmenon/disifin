@@ -1,8 +1,5 @@
-import 'dart:convert';
-
+import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,43 +26,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     try {
-      final response = await http.post(
-        Uri.parse('$url/Users/AuthenticateByName'),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Emby-Authorization':
-              'MediaBrowser Client="Disifin", Device="FlutterApp", DeviceId="12345", Version="1.0.0"',
-        },
-        body: jsonEncode({
-          'Username': username,
-          'Pw': password,
-        }),
-      );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final accessToken = data['AccessToken'];
-
-        // Save login information
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('url', url);
-        await prefs.setString('username', username);
-        await prefs.setString('accessToken', accessToken);
-
-        // Handle successful login, e.g., navigate to the home page
-        Navigator.pushReplacementNamed(context, '/');
-      } else {
-        setState(() {
-          _errorMessage = 'Login failed. Please check your credentials.';
-        });
-      }
+      await AudioPlayerService.authenticate(url, username, password);
+      // Handle successful login, e.g., navigate to the home page
+      Navigator.pushReplacementNamed(context, '/');
     } catch (e) {
-      print('Login error: $e');
       setState(() {
-        _errorMessage = 'An error occurred. Please try again.';
+        _errorMessage = 'Login failed. Please check your credentials.';
       });
     } finally {
       setState(() {

@@ -29,6 +29,19 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  Future<void> _checkToken() async {
+    final token = await AudioPlayerService.getAccessToken();
+    if (token == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkToken();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
