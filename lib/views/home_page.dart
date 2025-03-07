@@ -1,5 +1,6 @@
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -17,7 +18,7 @@ class HomePage extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Symbols.logout),
             onPressed: () => _logout(context),
           ),
         ],
@@ -33,7 +34,7 @@ class HomePage extends StatelessWidget {
                   SizedBox(height: 200),
                   Container(
                       decoration: BoxDecoration(),
-                      child: Icon(Icons.music_note, size: 100)),
+                      child: Icon(Symbols.music_note, size: 100)),
                   const SizedBox(height: 16),
                   Text(
                     'Start playing some music',
@@ -81,7 +82,7 @@ class HomePage extends StatelessWidget {
                               width: 100,
                               height: 100,
                               color: Theme.of(context).canvasColor,
-                              child: const Icon(Icons.music_note, size: 50),
+                              child: const Icon(Symbols.music_note, size: 50),
                             ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),

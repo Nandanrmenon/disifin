@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Disifin',
       theme: appTheme,
+      debugShowCheckedModeBanner: false,
       initialRoute: isLoggedIn
           ? '/main'
           : '/login', // Set initial route based on login status

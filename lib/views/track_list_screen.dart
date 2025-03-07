@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TrackListScreen extends StatefulWidget {
@@ -121,7 +122,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
                             )
                           : const CircleAvatar(
                               radius: 25,
-                              child: Icon(Icons.music_note),
+                              child: Icon(Symbols.music_note),
                             ),
                       title: Text(
                         track['Name'] ?? 'Unknown',

@@ -5,6 +5,7 @@ import 'package:disifin/views/media_list_screen.dart';
 import 'package:disifin/views/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -102,7 +103,8 @@ class _MainScreenState extends State<MainScreen> {
                                         else
                                           CircleAvatar(
                                             radius: 25,
-                                            child: const Icon(Icons.music_note),
+                                            child:
+                                                const Icon(Symbols.music_note),
                                           ),
                                         SizedBox(width: 8),
                                         Expanded(
@@ -120,12 +122,12 @@ class _MainScreenState extends State<MainScreen> {
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.favorite_outline),
+                                icon: const Icon(Symbols.favorite),
                                 onPressed: () {},
                               ),
                               IconButton.filledTonal(
                                 icon: Icon(
-                                  playing ? Icons.pause : Icons.play_arrow,
+                                  playing ? Symbols.pause : Symbols.play_arrow,
                                 ),
                                 onPressed: () {
                                   if (playing) {
@@ -183,18 +185,18 @@ class _MainScreenState extends State<MainScreen> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
+              icon: Icon(Symbols.home_filled),
+              activeIcon: Icon(Symbols.home),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
+              icon: Icon(Symbols.search),
+              activeIcon: Icon(Symbols.search),
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.library_music_outlined),
-              activeIcon: Icon(Icons.library_music),
+              icon: Icon(Symbols.library_music),
+              activeIcon: Icon(Symbols.library_music),
               label: 'Media',
             ),
           ],

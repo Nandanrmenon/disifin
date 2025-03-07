@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 final ThemeData appTheme = ThemeData(
   visualDensity: VisualDensity.adaptivePlatformDensity,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color.fromARGB(255, 102, 243, 170),
+    seedColor: const Color.fromARGB(255, 243, 102, 156),
     brightness: Brightness.dark,
     surface: Colors.black,
     outline: Colors.white10,
     outlineVariant: Colors.white10,
     dynamicSchemeVariant: DynamicSchemeVariant.content,
   ),
+  iconTheme: const IconThemeData(fill: 0, weight: 200, color: Colors.white),
   useMaterial3: true,
   sliderTheme: SliderThemeData(
     trackHeight: 10,
@@ -27,10 +28,10 @@ final ThemeData appTheme = ThemeData(
     ),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    selectedIconTheme: IconThemeData(size: 30),
-    unselectedIconTheme: IconThemeData(size: 24),
+    selectedIconTheme: IconThemeData(size: 26),
+    unselectedIconTheme: IconThemeData(size: 26),
     selectedLabelStyle: const TextStyle(fontSize: 12),
-    unselectedLabelStyle: const TextStyle(fontSize: 10),
+    unselectedLabelStyle: const TextStyle(fontSize: 12),
     backgroundColor: Colors.transparent,
     enableFeedback: true,
   ),

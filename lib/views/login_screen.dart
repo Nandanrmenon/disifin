@@ -1,5 +1,6 @@
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,37 +66,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       Positioned(
                         top: 60,
                         left: 50,
-                        child: Icon(Icons.music_note,
+                        child: Icon(Symbols.music_note,
                             size: 28, color: Colors.white.withOpacity(0.1)),
                       ),
                       Positioned(
                         top: 100,
                         left: 180,
-                        child: Icon(Icons.headset,
+                        child: Icon(Symbols.headset,
                             size: 108, color: Colors.white.withOpacity(0.1)),
                       ),
                       Positioned(
                         top: 150,
                         left: 100,
-                        child: Icon(Icons.album,
+                        child: Icon(Symbols.album,
                             size: 48, color: Colors.white.withOpacity(0.1)),
                       ),
                       Positioned(
                         top: 250,
                         left: 50,
-                        child: Icon(Icons.library_music,
+                        child: Icon(Symbols.library_music,
                             size: 48, color: Colors.white.withOpacity(0.1)),
                       ),
                       Positioned(
                         top: 250,
                         left: 150,
-                        child: Icon(Icons.audiotrack,
+                        child: Icon(Symbols.audiotrack,
                             size: 48, color: Colors.white.withOpacity(0.1)),
                       ),
                       Positioned(
                         top: 210,
                         left: 250,
-                        child: Icon(Icons.album,
+                        child: Icon(Symbols.album,
                             size: 78, color: Colors.white.withOpacity(0.1)),
                       ),
                     ],

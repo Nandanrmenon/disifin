@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class FullscreenAudioPlayer extends StatefulWidget {
   const FullscreenAudioPlayer({super.key});
@@ -52,7 +53,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                   AppBar(
                     leading: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.keyboard_arrow_down),
+                      icon: Icon(Symbols.keyboard_arrow_down),
                     ),
                     centerTitle: true,
                     backgroundColor: Colors.transparent,
@@ -61,7 +62,8 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       style: TextStyle(fontSize: 14),
                     ),
                     actions: [
-                      IconButton(onPressed: () {}, icon: Icon(Icons.more_vert)),
+                      IconButton(
+                          onPressed: () {}, icon: Icon(Symbols.more_vert)),
                     ],
                   ),
                   const Spacer(),
@@ -89,7 +91,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                               height: MediaQuery.of(context).size.width * 0.9,
                               color: Theme.of(context).canvasColor,
                               child: const Card(
-                                child: Icon(Icons.music_note, size: 200),
+                                child: Icon(Symbols.music_note, size: 200),
                               ),
                             ),
                           const SizedBox(height: 20),
@@ -158,7 +160,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.skip_previous),
+                        icon: const Icon(Symbols.skip_previous),
                         onPressed: AudioPlayerService.skipToPrevious,
                       ),
                       SizedBox(width: 20),
@@ -173,7 +175,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                             return const CircularProgressIndicator();
                           } else if (playing != true) {
                             return IconButton.filled(
-                              icon: const Icon(Icons.play_arrow),
+                              icon: const Icon(
+                                Symbols.play_arrow,
+                                color: Colors.black,
+                              ),
                               iconSize: 48.0,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(
@@ -186,7 +191,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           } else if (processingState !=
                               ProcessingState.completed) {
                             return IconButton.filled(
-                              icon: const Icon(Icons.pause),
+                              icon: const Icon(
+                                Symbols.pause,
+                                color: Colors.black,
+                              ),
                               iconSize: 48.0,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(
@@ -198,7 +206,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                             );
                           } else {
                             return IconButton.filled(
-                              icon: const Icon(Icons.replay),
+                              icon: const Icon(Symbols.replay),
                               iconSize: 48.0,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(
@@ -213,7 +221,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       ),
                       SizedBox(width: 20),
                       IconButton(
-                        icon: const Icon(Icons.skip_next),
+                        icon: const Icon(Symbols.skip_next),
                         onPressed: AudioPlayerService.skipToNext,
                       ),
                     ],
@@ -222,15 +230,14 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                   const Spacer(),
                   Row(
                     children: [
-                      IconButton(
-                          onPressed: () {}, icon: Icon(Icons.lyrics_outlined)),
+                      IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
                       Spacer(),
                       IconButton(
                           onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const QueueView())),
-                          icon: const Icon(Icons.queue_outlined))
+                          icon: const Icon(Symbols.queue_music))
                     ],
                   ),
                 ],
