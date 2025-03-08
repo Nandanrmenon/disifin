@@ -8,8 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TrackInfo {
   final String? name;
   final String? imageUrl;
+  final String? artist; // Add artist property
 
-  TrackInfo({this.name, this.imageUrl});
+  TrackInfo({this.name, this.imageUrl, this.artist});
 }
 
 class AudioPlayerService {
@@ -20,32 +21,36 @@ class AudioPlayerService {
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
 
-  static Future<void> play(
-      String url, String trackName, String trackImageUrl) async {
+  static Future<void> play(String url, String trackName, String trackImageUrl,
+      String trackArtist) async {
     try {
       currentTrackName = trackName;
       currentTrackImageUrl = trackImageUrl;
       await _audioPlayer.setAudioSource(AudioSource.uri(
         Uri.parse(url),
-        tag: TrackInfo(name: trackName, imageUrl: trackImageUrl),
+        tag: TrackInfo(
+            name: trackName, imageUrl: trackImageUrl, artist: trackArtist),
       ));
       await _audioPlayer.play();
       await _channel.invokeMethod('play', {'url': url});
-      _addToHistory(TrackInfo(name: trackName, imageUrl: trackImageUrl));
+      _addToHistory(TrackInfo(
+          name: trackName, imageUrl: trackImageUrl, artist: trackArtist));
     } catch (e) {
       print('Error playing audio: $e');
     }
   }
 
   static Future<void> playQueue(List<String> urls, List<String> trackNames,
-      List<String> trackImageUrls) async {
+      List<String> trackImageUrls, List<String> trackArtists) async {
     try {
       final playlist = ConcatenatingAudioSource(
         children: List.generate(urls.length, (index) {
           return AudioSource.uri(
             Uri.parse(urls[index]),
             tag: TrackInfo(
-                name: trackNames[index], imageUrl: trackImageUrls[index]),
+                name: trackNames[index],
+                imageUrl: trackImageUrls[index],
+                artist: trackArtists[index]),
           );
         }),
       );
@@ -54,8 +59,10 @@ class AudioPlayerService {
       currentTrackImageUrl = trackImageUrls[0];
       await _audioPlayer.play();
       await _channel.invokeMethod('play', {'url': urls[0]});
-      _addToHistory(
-          TrackInfo(name: trackNames[0], imageUrl: trackImageUrls[0]));
+      _addToHistory(TrackInfo(
+          name: trackNames[0],
+          imageUrl: trackImageUrls[0],
+          artist: trackArtists[0]));
     } catch (e) {
       print('Error playing audio queue: $e');
     }

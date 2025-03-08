@@ -72,6 +72,8 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     builder: (context, snapshot) {
                       final trackInfo = snapshot.data;
                       final trackName = trackInfo?.name ?? 'Now Playing';
+                      final trackArtist = trackInfo?.artist ??
+                          'Unknown Artist'; // Get artist name
                       final trackImageUrl = trackInfo?.imageUrl;
                       return Column(
                         children: [
@@ -94,22 +96,38 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                                 child: Icon(Symbols.music_note, size: 200),
                               ),
                             ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 8),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              trackName,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  trackName,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  trackArtist,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    // fontStyle: FontStyle.italic,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
                   StreamBuilder<Duration?>(
                     stream: AudioPlayerService.durationStream,
                     builder: (context, snapshot) {
@@ -125,20 +143,35 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           _sliderValue = position.inMilliseconds.toDouble();
                           return Column(
                             children: [
-                              Slider(
-                                value: _sliderValue.clamp(
-                                    0.0, duration.inMilliseconds.toDouble()),
-                                min: 0.0,
-                                max: duration.inMilliseconds.toDouble(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _sliderValue = value;
-                                  });
-                                },
-                                onChangeEnd: (value) {
-                                  AudioPlayerService.seek(
-                                      Duration(milliseconds: value.toInt()));
-                                },
+                              SliderTheme(
+                                data: SliderThemeData(
+                                  trackHeight: 20,
+                                  thumbShape: RoundSliderThumbShape(
+                                      enabledThumbRadius: 8,
+                                      elevation: 2,
+                                      pressedElevation: 0),
+                                  overlappingShapeStrokeColor: Colors.black,
+                                  activeTrackColor: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer,
+                                  thumbColor:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                                child: Slider(
+                                  value: _sliderValue.clamp(
+                                      0.0, duration.inMilliseconds.toDouble()),
+                                  min: 0.0,
+                                  max: duration.inMilliseconds.toDouble(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _sliderValue = value;
+                                    });
+                                  },
+                                  onChangeEnd: (value) {
+                                    AudioPlayerService.seek(
+                                        Duration(milliseconds: value.toInt()));
+                                  },
+                                ),
                               ),
                               Row(
                                 children: [
@@ -159,6 +192,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      IconButton(
+                        icon: const Icon(Symbols.repeat),
+                        onPressed: () {},
+                      ),
                       IconButton(
                         icon: const Icon(Symbols.skip_previous),
                         onPressed: AudioPlayerService.skipToPrevious,
@@ -223,6 +260,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       IconButton(
                         icon: const Icon(Symbols.skip_next),
                         onPressed: AudioPlayerService.skipToNext,
+                      ),
+                      IconButton(
+                        icon: const Icon(Symbols.shuffle),
+                        onPressed: () {},
                       ),
                     ],
                   ),

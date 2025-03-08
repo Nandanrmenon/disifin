@@ -14,8 +14,8 @@ final ThemeData appTheme = ThemeData(
   useMaterial3: true,
   sliderTheme: SliderThemeData(
     trackHeight: 10,
-    activeTrackColor: Colors.white,
-    inactiveTrackColor: Colors.grey,
+    // activeTrackColor: Colors.white,
+    // inactiveTrackColor: Colors.grey,
   ),
   appBarTheme: AppBarTheme(
     backgroundColor: Colors.black,
