@@ -2,10 +2,10 @@ import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
 import 'package:disifin/views/login_screen.dart';
-import 'package:disifin/views/main_screen.dart'; // Add this import
+import 'package:disifin/views/main_screen.dart';
 import 'package:disifin/views/media_list_screen.dart';
 import 'package:disifin/views/music_player.dart';
-import 'package:disifin/views/search_page.dart'; // Add this import
+import 'package:disifin/views/search_page.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
