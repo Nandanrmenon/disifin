@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:http/http.dart' as http;
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +19,33 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isUrlValid = false;
+  String? _serverName;
+
+  Future<void> _validateUrl() async {
+    final url = _urlController.text;
+    setState(() {
+      _isUrlValid = false;
+      _serverName = null;
+    });
+
+    try {
+      final response = await http.get(Uri.parse('$url/System/Info/Public'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['ServerName'] != null) {
+          setState(() {
+            _isUrlValid = true;
+            _serverName = data['ServerName'];
+          });
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('serverName', _serverName!);
+        }
+      }
+    } catch (e) {
+      // Handle error
+    }
+  }
 
   Future<void> _login() async {
     setState(() {
@@ -47,104 +78,93 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color(0xFF3F3F3F), Colors.black],
+            colors: [
+              Theme.of(context).colorScheme.surfaceContainerLow,
+              Theme.of(context).colorScheme.surface,
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 60,
-                        left: 50,
-                        child: Icon(Symbols.music_note,
-                            size: 28, color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Positioned(
-                        top: 100,
-                        left: 180,
-                        child: Icon(Symbols.headset,
-                            size: 108, color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Positioned(
-                        top: 150,
-                        left: 100,
-                        child: Icon(Symbols.album,
-                            size: 48, color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Positioned(
-                        top: 250,
-                        left: 50,
-                        child: Icon(Symbols.library_music,
-                            size: 48, color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Positioned(
-                        top: 250,
-                        left: 150,
-                        child: Icon(Symbols.audiotrack,
-                            size: 48, color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Positioned(
-                        top: 210,
-                        left: 250,
-                        child: Icon(Symbols.album,
-                            size: 78, color: Colors.white.withOpacity(0.1)),
-                      ),
-                    ],
-                  ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_isLoading) LinearProgressIndicator(),
+                Spacer(),
+                Text(
+                  'Disifin',
+                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
                 ),
-              ),
-              Text(
-                'Disifin',
-                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Jellyfin Music Player',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
-              ),
-              const SizedBox(height: 20),
-              Text('Login to your Jellyfin server'),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _urlController,
-                decoration: const InputDecoration(labelText: 'URL'),
-              ),
-              SizedBox(
-                height: 8,
-              ),
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
-              ),
-              SizedBox(
-                height: 8,
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              if (_isLoading) const CircularProgressIndicator(),
-              if (_errorMessage != null)
-                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-              FilledButton(
-                onPressed: _isLoading ? null : _login,
-                child: const Text('Login'),
-              ),
-              SizedBox(
-                height: 40,
-              ),
-            ],
+                Text(
+                  'Jellyfin Music Player',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
+                ),
+                const SizedBox(height: 20),
+                Text('Login to your Jellyfin server'),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _urlController,
+                        decoration: InputDecoration(
+                          labelText: 'URL',
+                        ),
+                        enabled: _isUrlValid ? false : true,
+                      ),
+                    ),
+                    if (_isUrlValid)
+                      IconButton(
+                          tooltip: 'Change server',
+                          onPressed: () {
+                            setState(() {
+                              _isUrlValid = false;
+                              _urlController.clear();
+                              _serverName = null;
+                            });
+                          },
+                          icon: Icon(Symbols.dns_rounded))
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (_serverName != null)
+                  Text('Connected to: $_serverName',
+                      style: Theme.of(context).textTheme.labelLarge),
+                if (!_isUrlValid) ...[
+                  ElevatedButton(
+                    onPressed: _validateUrl,
+                    child: const Text('Connect to Jellyfin'),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (_isUrlValid) ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(labelText: 'Username'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 16),
+                  if (_errorMessage != null)
+                    Text(_errorMessage!,
+                        style: const TextStyle(color: Colors.red)),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child: const Text('Login'),
+                  ),
+                ],
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
