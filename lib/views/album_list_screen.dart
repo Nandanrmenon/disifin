@@ -17,11 +17,25 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   String? _serverUrl;
+  bool _isGridView = false;
 
   @override
   void initState() {
     super.initState();
+    _loadViewPreference();
     _fetchAlbums();
+  }
+
+  Future<void> _loadViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isGridView = prefs.getBool('isGridView') ?? false;
+    });
+  }
+
+  Future<void> _saveViewPreference(bool isGridView) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isGridView', isGridView);
   }
 
   Future<void> _fetchAlbums() async {
@@ -89,50 +103,151 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Text(_errorMessage!,
-                      style: const TextStyle(color: Colors.red)))
-              : ListView.builder(
-                  itemCount: _albums.length,
-                  itemBuilder: (context, index) {
-                    final album = _albums[index];
-                    final artists =
-                        (album['Artists'] as List<dynamic>?)?.join(', ') ??
-                            'Unknown';
-                    final imageUrl = album['ImageTags'] != null &&
-                            album['ImageTags']['Primary'] != null &&
-                            _serverUrl != null
-                        ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
-                        : null;
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ListTile(
-                        leading: imageUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(25),
-                                child: SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: Image.network(imageUrl,
-                                      fit: BoxFit.cover),
-                                ),
-                              )
-                            : const CircleAvatar(
-                                radius: 25,
-                                child: Icon(Symbols.album),
-                              ),
-                        title: Text(
-                          album['Name'] ?? 'Unknown',
-                          maxLines: 1,
-                        ),
-                        subtitle: Text(artists),
-                      ),
-                    );
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: Icon(Symbols.play_arrow_rounded),
+                    label: Text('Play All')),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
+                  onPressed: () {
+                    setState(() {
+                      _isGridView = !_isGridView;
+                      _saveViewPreference(_isGridView);
+                    });
                   },
                 ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Text(_errorMessage!,
+                            style: const TextStyle(color: Colors.red)))
+                    : _isGridView
+                        ? GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 2 / 2.5,
+                            ),
+                            itemCount: _albums.length,
+                            itemBuilder: (context, index) {
+                              final album = _albums[index];
+                              final artists =
+                                  (album['Artists'] as List<dynamic>?)
+                                          ?.join(', ') ??
+                                      'Unknown';
+                              final imageUrl = album['ImageTags'] != null &&
+                                      album['ImageTags']['Primary'] != null &&
+                                      _serverUrl != null
+                                  ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
+                                  : null;
+                              return GestureDetector(
+                                onTap: () {
+                                  // Handle album tap
+                                },
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: imageUrl != null
+                                          ? Card(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: Image.network(imageUrl,
+                                                    fit: BoxFit.cover),
+                                              ),
+                                            )
+                                          : Card(
+                                              child: const Icon(Symbols.album,
+                                                  size: 50),
+                                            ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Text(
+                                            album['Name'] ?? 'Unknown',
+                                            maxLines: 1,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            artists,
+                                            maxLines: 1,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                        : ListView.builder(
+                            itemCount: _albums.length,
+                            itemBuilder: (context, index) {
+                              final album = _albums[index];
+                              final artists =
+                                  (album['Artists'] as List<dynamic>?)
+                                          ?.join(', ') ??
+                                      'Unknown';
+                              final imageUrl = album['ImageTags'] != null &&
+                                      album['ImageTags']['Primary'] != null &&
+                                      _serverUrl != null
+                                  ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
+                                  : null;
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListTile(
+                                  leading: imageUrl != null
+                                      ? ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(25),
+                                          child: SizedBox(
+                                            width: 50,
+                                            height: 50,
+                                            child: Image.network(imageUrl,
+                                                fit: BoxFit.cover),
+                                          ),
+                                        )
+                                      : const CircleAvatar(
+                                          radius: 25,
+                                          child: Icon(Symbols.album),
+                                        ),
+                                  title: Text(
+                                    album['Name'] ?? 'Unknown',
+                                    maxLines: 1,
+                                  ),
+                                  subtitle: Text(
+                                    artists,
+                                    maxLines: 1,
+                                  ),
+                                  onTap: () {
+                                    // Handle album tap
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }

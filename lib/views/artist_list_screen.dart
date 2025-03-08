@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ArtistListScreen extends StatefulWidget {
@@ -16,11 +17,25 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   String? _serverUrl;
+  bool _isGridView = false;
 
   @override
   void initState() {
     super.initState();
+    _loadViewPreference();
     _fetchArtists();
+  }
+
+  Future<void> _loadViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isGridView = prefs.getBool('isGridView') ?? false;
+    });
+  }
+
+  Future<void> _saveViewPreference(bool isGridView) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isGridView', isGridView);
   }
 
   Future<void> _fetchArtists() async {
@@ -85,43 +100,131 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Text(_errorMessage!,
-                      style: const TextStyle(color: Colors.red)))
-              : ListView.builder(
-                  itemCount: _artists.length,
-                  itemBuilder: (context, index) {
-                    final artist = _artists[index];
-                    final imageUrl = artist['ImageTags'] != null &&
-                            artist['ImageTags']['Primary'] != null &&
-                            _serverUrl != null
-                        ? '$_serverUrl/Items/${artist['Id']}/Images/Primary?tag=${artist['ImageTags']['Primary']}'
-                        : null;
-                    return ListTile(
-                      leading: imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(25),
-                              child: SizedBox(
-                                width: 50,
-                                height: 50,
-                                child:
-                                    Image.network(imageUrl, fit: BoxFit.cover),
-                              ),
-                            )
-                          : CircleAvatar(
-                              radius: 25,
-                              child: Text(artist['Name']?[0] ?? '?'),
-                            ),
-                      title: Text(
-                        artist['Name'] ?? 'Unknown',
-                        maxLines: 1,
-                      ),
-                    );
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: Icon(Symbols.play_arrow_rounded),
+                    label: Text('Play All')),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
+                  onPressed: () {
+                    setState(() {
+                      _isGridView = !_isGridView;
+                      _saveViewPreference(_isGridView);
+                    });
                   },
                 ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Text(_errorMessage!,
+                            style: const TextStyle(color: Colors.red)))
+                    : _isGridView
+                        ? GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 2 / 2.5,
+                            ),
+                            itemCount: _artists.length,
+                            itemBuilder: (context, index) {
+                              final artist = _artists[index];
+                              final imageUrl = artist['ImageTags'] != null &&
+                                      artist['ImageTags']['Primary'] != null &&
+                                      _serverUrl != null
+                                  ? '$_serverUrl/Items/${artist['Id']}/Images/Primary?tag=${artist['ImageTags']['Primary']}'
+                                  : null;
+                              return GestureDetector(
+                                onTap: () {
+                                  // Handle artist tap
+                                },
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: imageUrl != null
+                                          ? Card(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: Image.network(imageUrl,
+                                                    fit: BoxFit.cover),
+                                              ),
+                                            )
+                                          : Card(
+                                              child: const Icon(Symbols.person,
+                                                  size: 50),
+                                            ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Text(
+                                            artist['Name'] ?? 'Unknown',
+                                            maxLines: 1,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                        : ListView.builder(
+                            itemCount: _artists.length,
+                            itemBuilder: (context, index) {
+                              final artist = _artists[index];
+                              final imageUrl = artist['ImageTags'] != null &&
+                                      artist['ImageTags']['Primary'] != null &&
+                                      _serverUrl != null
+                                  ? '$_serverUrl/Items/${artist['Id']}/Images/Primary?tag=${artist['ImageTags']['Primary']}'
+                                  : null;
+                              return ListTile(
+                                leading: imageUrl != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(25),
+                                        child: SizedBox(
+                                          width: 50,
+                                          height: 50,
+                                          child: Image.network(imageUrl,
+                                              fit: BoxFit.cover),
+                                        ),
+                                      )
+                                    : CircleAvatar(
+                                        radius: 25,
+                                        child: Text(artist['Name']?[0] ?? '?'),
+                                      ),
+                                title: Text(
+                                  artist['Name'] ?? 'Unknown',
+                                  maxLines: 1,
+                                ),
+                                onTap: () {
+                                  // Handle artist tap
+                                },
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }
