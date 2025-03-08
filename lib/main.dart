@@ -9,10 +9,18 @@ import 'package:disifin/views/music_player.dart';
 import 'package:disifin/views/search_page.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
+
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getString('accessToken') != null;
 

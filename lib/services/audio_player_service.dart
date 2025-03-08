@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TrackInfo {
@@ -28,8 +29,13 @@ class AudioPlayerService {
       currentTrackImageUrl = trackImageUrl;
       await _audioPlayer.setAudioSource(AudioSource.uri(
         Uri.parse(url),
-        tag: TrackInfo(
-            name: trackName, imageUrl: trackImageUrl, artist: trackArtist),
+        tag: MediaItem(
+          id: url,
+          album: "Album name",
+          title: trackName,
+          artUri: Uri.parse(trackImageUrl),
+          artist: trackArtist,
+        ),
       ));
       await _audioPlayer.play();
       await _channel.invokeMethod('play', {'url': url});
@@ -47,10 +53,13 @@ class AudioPlayerService {
         children: List.generate(urls.length, (index) {
           return AudioSource.uri(
             Uri.parse(urls[index]),
-            tag: TrackInfo(
-                name: trackNames[index],
-                imageUrl: trackImageUrls[index],
-                artist: trackArtists[index]),
+            tag: MediaItem(
+              id: urls[index],
+              album: "Album name",
+              title: trackNames[index],
+              artUri: Uri.parse(trackImageUrls[index]),
+              artist: trackArtists[index],
+            ),
           );
         }),
       );
@@ -155,7 +164,12 @@ class AudioPlayerService {
   static Stream<TrackInfo?> get currentTrackStream =>
       _audioPlayer.currentIndexStream.map((index) {
         if (index != null && index < _audioPlayer.sequence!.length) {
-          return _audioPlayer.sequence![index].tag as TrackInfo?;
+          final mediaItem = _audioPlayer.sequence![index].tag as MediaItem;
+          return TrackInfo(
+            name: mediaItem.title,
+            imageUrl: mediaItem.artUri?.toString(),
+            artist: mediaItem.artist,
+          );
         }
         return null;
       });
@@ -168,7 +182,7 @@ class AudioPlayerService {
         headers: {
           'Content-Type': 'application/json',
           'X-Emby-Authorization':
-              'MediaBrowser Client="Disifin", Device="FlutterApp", DeviceId="12345", Version="1.0.0"',
+              'MediaBrowser Client="Disifin", Device="Android", DeviceId="12345", Version="1.0.0"',
         },
         body: jsonEncode({
           'Username': username,

@@ -72,8 +72,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     builder: (context, snapshot) {
                       final trackInfo = snapshot.data;
                       final trackName = trackInfo?.name ?? 'Now Playing';
-                      final trackArtist = trackInfo?.artist ??
-                          'Unknown Artist'; // Get artist name
+                      final trackArtist = trackInfo?.artist ?? 'Unknown Artist';
                       final trackImageUrl = trackInfo?.imageUrl;
                       return Column(
                         children: [
@@ -116,7 +115,6 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                                   trackArtist,
                                   style: const TextStyle(
                                     fontSize: 18,
-                                    // fontStyle: FontStyle.italic,
                                   ),
                                   maxLines: 1,
                                 ),
@@ -133,7 +131,6 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     builder: (context, snapshot) {
                       final duration = snapshot.data ?? Duration.zero;
                       if (duration == Duration.zero) {
-                        // Fallback to a default duration if not available
                         return const Text('Loading...');
                       }
                       return StreamBuilder<Duration>(

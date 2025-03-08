@@ -36,6 +36,7 @@ dependencies:
   just_audio: ^0.9.18
   audio_service: ^0.18.0
   material_symbols_icons: ^4.2808.0
+  just_audio_background: ^0.0.1-beta.15
 
 dev_dependencies:
   flutter_test:
