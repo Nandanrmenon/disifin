@@ -58,7 +58,7 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('$url/Items?IncludeItemTypes=Artists&Recursive=true'),
+        Uri.parse('$url/Items?IncludeItemTypes=MusicArtist&Recursive=true'),
         headers: {
           'Content-Type': 'application/json',
           'X-Emby-Token': accessToken,
@@ -105,12 +105,8 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Symbols.play_arrow_rounded),
-                    label: Text('Play All')),
-                const Spacer(),
                 IconButton(
                   icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
                   onPressed: () {
@@ -159,8 +155,20 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                               child: ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(10),
-                                                child: Image.network(imageUrl,
-                                                    fit: BoxFit.cover),
+                                                child: Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return Container(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      child: const Icon(
+                                                          Symbols.person,
+                                                          size: 50),
+                                                    );
+                                                  },
+                                                ),
                                               ),
                                             )
                                           : Card(
@@ -204,13 +212,22 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                         child: SizedBox(
                                           width: 50,
                                           height: 50,
-                                          child: Image.network(imageUrl,
-                                              fit: BoxFit.cover),
+                                          child: Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const CircleAvatar(
+                                                radius: 25,
+                                                child: Icon(Symbols.person),
+                                              );
+                                            },
+                                          ),
                                         ),
                                       )
-                                    : CircleAvatar(
+                                    : const CircleAvatar(
                                         radius: 25,
-                                        child: Text(artist['Name']?[0] ?? '?'),
+                                        child: Icon(Symbols.person),
                                       ),
                                 title: Text(
                                   artist['Name'] ?? 'Unknown',

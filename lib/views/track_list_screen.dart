@@ -113,10 +113,19 @@ class _TrackListScreenState extends State<TrackListScreen> {
             child: Row(
               children: [
                 ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Symbols.play_arrow_rounded),
-                    label: Text('Play All')),
-                const Spacer(),
+                  onPressed: () {},
+                  icon: Icon(
+                    Symbols.play_arrow_rounded,
+                  ),
+                  label: const Text('Play All'),
+                ),
+                SizedBox(width: 8),
+                IconButton.outlined(
+                  onPressed: () {},
+                  isSelected: false,
+                  icon: Icon(Symbols.shuffle),
+                ),
+                Spacer(),
                 IconButton(
                   icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
                   onPressed: () {

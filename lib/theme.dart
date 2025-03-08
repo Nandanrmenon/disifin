@@ -10,7 +10,7 @@ final ThemeData appTheme = ThemeData(
     outlineVariant: Colors.white10,
     dynamicSchemeVariant: DynamicSchemeVariant.content,
   ),
-  iconTheme: const IconThemeData(fill: 0, weight: 200, color: Colors.white),
+  iconTheme: const IconThemeData(fill: 0, weight: 300, color: Colors.white),
   useMaterial3: true,
   sliderTheme: SliderThemeData(
     trackHeight: 10,

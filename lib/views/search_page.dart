@@ -260,9 +260,13 @@ class _SearchPageState extends State<SearchPage> {
                                                   result['ImageUrl']!,
                                                   errorBuilder: (context, error,
                                                           stackTrace) =>
-                                                      const Icon(Icons.person),
+                                                      CircleAvatar(
+                                                          child: const Icon(
+                                                              Icons.person)),
                                                 )
-                                              : const Icon(Icons.person),
+                                              : CircleAvatar(
+                                                  child:
+                                                      const Icon(Icons.person)),
                                         ),
                                         title: Text(result['Name']!),
                                       )),
