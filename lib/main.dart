@@ -1,6 +1,7 @@
 import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
+import 'package:disifin/views/fullscreen_audio_player.dart';
 import 'package:disifin/views/login_screen.dart';
 import 'package:disifin/views/main_screen.dart';
 import 'package:disifin/views/media_list_screen.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/media': (context) => const MediaListScreen(),
         '/search': (context) => const SearchPage(),
         '/main': (context) => const MainScreen(), // Add this route
+        '/fullscreen_audio_player': (context) => const FullscreenAudioPlayer(),
       },
     );
   }

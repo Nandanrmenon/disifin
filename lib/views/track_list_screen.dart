@@ -153,7 +153,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
                                   : null;
                               final audioUrl =
                                   '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
-                              return GestureDetector(
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(10),
                                 onTap: () {
                                   _playTrack(index);
                                 },

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:disifin/views/album_songs_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
@@ -152,9 +153,21 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                       _serverUrl != null
                                   ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
                                   : null;
-                              return GestureDetector(
+                              print(
+                                  'Album: ${album['Name']}, Image URL: $imageUrl'); // Debug print
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(10),
                                 onTap: () {
-                                  // Handle album tap
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AlbumSongsScreen(
+                                        albumId: album['Id'],
+                                        albumName: album['Name'] ?? 'Unknown',
+                                        imageUrl: imageUrl,
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Column(
                                   crossAxisAlignment:
@@ -166,8 +179,20 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                               child: ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(10),
-                                                child: Image.network(imageUrl,
-                                                    fit: BoxFit.cover),
+                                                child: Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return Container(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      child: const Icon(
+                                                          Symbols.album,
+                                                          size: 50),
+                                                    );
+                                                  },
+                                                ),
                                               ),
                                             )
                                           : Card(
@@ -212,6 +237,8 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                       _serverUrl != null
                                   ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
                                   : null;
+                              print(
+                                  'Album: ${album['Name']}, Image URL: $imageUrl'); // Debug print
                               return Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: ListTile(
@@ -222,8 +249,17 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                           child: SizedBox(
                                             width: 50,
                                             height: 50,
-                                            child: Image.network(imageUrl,
-                                                fit: BoxFit.cover),
+                                            child: Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return const CircleAvatar(
+                                                  radius: 25,
+                                                  child: Icon(Symbols.album),
+                                                );
+                                              },
+                                            ),
                                           ),
                                         )
                                       : const CircleAvatar(
@@ -239,7 +275,16 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                     maxLines: 1,
                                   ),
                                   onTap: () {
-                                    // Handle album tap
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AlbumSongsScreen(
+                                          albumId: album['Id'],
+                                          albumName: album['Name'] ?? 'Unknown',
+                                          imageUrl: imageUrl,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 ),
                               );
