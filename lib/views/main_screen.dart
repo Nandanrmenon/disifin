@@ -185,18 +185,27 @@ class _MainScreenState extends State<MainScreen> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Symbols.home_filled),
-              activeIcon: Icon(Symbols.home),
+              icon: Icon(Symbols.home_rounded),
+              activeIcon: Icon(
+                Symbols.home_rounded,
+                fill: 1,
+              ),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.search),
-              activeIcon: Icon(Symbols.search),
+              icon: Icon(Symbols.search_rounded),
+              activeIcon: Icon(
+                Symbols.search_rounded,
+                fill: 1,
+              ),
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.library_music),
-              activeIcon: Icon(Symbols.library_music),
+              icon: Icon(Symbols.library_music_rounded),
+              activeIcon: Icon(
+                Symbols.library_music_rounded,
+                fill: 1,
+              ),
               label: 'Media',
             ),
           ],
