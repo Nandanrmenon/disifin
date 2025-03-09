@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:disifin/services/audio_player_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -62,29 +63,35 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
               color: Colors.black.withOpacity(0.5),
             ),
           ),
-          Center(
+          SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  AppBar(
-                    leading: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Symbols.keyboard_arrow_down),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(Symbols.keyboard_arrow_down),
+                        ),
+                        const Spacer(),
+                        Text(
+                          'Now Playing',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(Symbols.more_vert),
+                        ),
+                      ],
                     ),
-                    centerTitle: true,
-                    backgroundColor: Colors.transparent,
-                    title: const Text(
-                      'Now Playing',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    actions: [
-                      IconButton(
-                          onPressed: () {}, icon: Icon(Symbols.more_vert)),
-                    ],
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 8),
                   StreamBuilder<TrackInfo?>(
                     stream: AudioPlayerService.currentTrackStream,
                     builder: (context, snapshot) {
@@ -221,7 +228,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -305,7 +312,6 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Spacer(),
                   Row(
                     children: [
                       IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
@@ -313,7 +319,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       IconButton(
                           onPressed: () => Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              CupertinoSheetRoute(
                                   builder: (context) => const QueueView())),
                           icon: const Icon(Symbols.queue_music))
                     ],
@@ -347,21 +353,33 @@ class _QueutViewState extends State<QueueView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text(
-          'Next Up',
-          style: TextStyle(fontSize: 14),
-        ),
-      ),
-      body: ListView.builder(
-        itemCount: AudioPlayerService.currentQueue.length,
-        itemBuilder: (context, index) {
-          final trackName = AudioPlayerService.currentQueue[index];
-          return ListTile(
-            title: Text(trackName),
-          );
-        },
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      body: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(Symbols.keyboard_arrow_down),
+              ),
+              const Spacer(),
+              Text('Next Up'),
+              const Spacer(),
+              SizedBox(width: 48),
+            ],
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: AudioPlayerService.currentQueue.length,
+              itemBuilder: (context, index) {
+                final trackName = AudioPlayerService.currentQueue[index];
+                return ListTile(
+                  title: Text(trackName),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

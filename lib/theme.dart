@@ -34,9 +34,11 @@ final ThemeData appTheme = ThemeData(
     ),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    selectedIconTheme: IconThemeData(size: 26),
+    selectedIconTheme: IconThemeData(size: 26, color: Colors.white),
     unselectedIconTheme: IconThemeData(size: 26),
-    selectedLabelStyle: const TextStyle(fontSize: 12),
+    selectedItemColor: Colors.white,
+    selectedLabelStyle:
+        const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
     unselectedLabelStyle: const TextStyle(fontSize: 12),
     backgroundColor: Colors.transparent,
     enableFeedback: true,

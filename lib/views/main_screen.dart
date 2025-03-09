@@ -3,6 +3,7 @@ import 'package:disifin/views/fullscreen_audio_player.dart';
 import 'package:disifin/views/home_page.dart';
 import 'package:disifin/views/media_list_screen.dart';
 import 'package:disifin/views/search_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -37,6 +38,17 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _showFullscreenPlayer(BuildContext context) {
+    Navigator.of(context).push(
+      CupertinoSheetRoute(
+        settings: RouteSettings(
+          name: '/fullscreen_audio_player',
+        ),
+        builder: (context) => const FullscreenAudioPlayer(),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -63,12 +75,7 @@ class _MainScreenState extends State<MainScreen> {
                   return const SizedBox.shrink();
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FullscreenAudioPlayer(),
-                      ),
-                    );
+                    _showFullscreenPlayer(context);
                   },
                   child: Card(
                     child: Padding(
@@ -202,12 +209,12 @@ class _MainScreenState extends State<MainScreen> {
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.library_music_rounded),
+              icon: Icon(Symbols.art_track_rounded),
               activeIcon: Icon(
-                Symbols.library_music_rounded,
+                Symbols.art_track_rounded,
                 fill: 1,
               ),
-              label: 'Media',
+              label: 'Library',
             ),
           ],
           currentIndex: _selectedIndex,

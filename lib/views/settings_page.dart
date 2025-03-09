@@ -191,6 +191,12 @@ class _CustomizePageState extends State<CustomizePage> {
                   });
                 },
               ),
+              onTap: () => setState(
+                () {
+                  _selectedSliderStyle = 1;
+                  _saveSliderStyle(1);
+                },
+              ),
             ),
             ListTile(
               title: const Text('Slider Style 2'),
@@ -202,6 +208,12 @@ class _CustomizePageState extends State<CustomizePage> {
                     _selectedSliderStyle = value!;
                     _saveSliderStyle(value);
                   });
+                },
+              ),
+              onTap: () => setState(
+                () {
+                  _selectedSliderStyle = 2;
+                  _saveSliderStyle(2);
                 },
               ),
             ),

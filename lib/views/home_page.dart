@@ -6,11 +6,6 @@ import 'package:material_symbols_icons/symbols.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    await AudioPlayerService.logout();
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,12 +13,8 @@ class HomePage extends StatelessWidget {
         title: const Text('Home'),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Symbols.logout),
-            onPressed: () => _logout(context),
-          ),
-          IconButton(
-            icon: const Icon(Symbols.settings),
+          IconButton.filledTonal(
+            icon: const Icon(Symbols.person),
             onPressed: () {
               Navigator.push(
                 context,

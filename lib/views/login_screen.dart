@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Theme.of(context).colorScheme.surfaceContainerLow,
+              Theme.of(context).colorScheme.secondaryContainer,
               Theme.of(context).colorScheme.surface,
             ],
             begin: Alignment.topCenter,
@@ -89,84 +89,90 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_isLoading)
-                  LinearProgressIndicator(
-                    year2023: false,
-                  ),
-                Spacer(),
-                Text(
-                  'Disifin',
-                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Jellyfin Music Player',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
-                ),
-                const SizedBox(height: 20),
-                Text('Login to your Jellyfin server'),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _urlController,
-                        decoration: InputDecoration(
-                          labelText: 'URL',
-                        ),
-                        enabled: _isUrlValid ? false : true,
-                      ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_isLoading)
+                    LinearProgressIndicator(
+                      year2023: false,
                     ),
-                    if (_isUrlValid)
-                      IconButton(
-                          tooltip: 'Change server',
-                          onPressed: () {
-                            setState(() {
-                              _isUrlValid = false;
-                              _urlController.clear();
-                              _serverName = null;
-                            });
-                          },
-                          icon: Icon(Symbols.dns_rounded))
+                  const SizedBox(height: 20),
+                  Text(
+                    'Disifin',
+                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Jellyfin Music Player',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Login to your Jellyfin server'),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _urlController,
+                          decoration: InputDecoration(
+                            labelText: 'URL',
+                          ),
+                          enabled: _isUrlValid ? false : true,
+                        ),
+                      ),
+                      if (_isUrlValid)
+                        IconButton(
+                            tooltip: 'Change server',
+                            onPressed: () {
+                              setState(() {
+                                _isUrlValid = false;
+                                _urlController.clear();
+                                _serverName = null;
+                              });
+                            },
+                            icon: Icon(Symbols.dns_rounded))
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_serverName != null)
+                    Text(
+                      'Connected to: $_serverName',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  if (!_isUrlValid) ...[
+                    ElevatedButton(
+                      onPressed: _validateUrl,
+                      child: const Text('Connect to Jellyfin'),
+                    ),
+                    const SizedBox(height: 8),
                   ],
-                ),
-                const SizedBox(height: 8),
-                if (_serverName != null)
-                  Text('Connected to: $_serverName',
-                      style: Theme.of(context).textTheme.labelLarge),
-                if (!_isUrlValid) ...[
-                  ElevatedButton(
-                    onPressed: _validateUrl,
-                    child: const Text('Connect to Jellyfin'),
-                  ),
-                  const SizedBox(height: 8),
+                  if (_isUrlValid) ...[
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(labelText: 'Username'),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 16),
+                    if (_errorMessage != null)
+                      Text(_errorMessage!,
+                          style: const TextStyle(color: Colors.red)),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      child: const Text('Login'),
+                    ),
+                  ],
                 ],
-                if (_isUrlValid) ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 16),
-                  if (_errorMessage != null)
-                    Text(_errorMessage!,
-                        style: const TextStyle(color: Colors.red)),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    child: const Text('Login'),
-                  ),
-                ],
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           ),
         ),
