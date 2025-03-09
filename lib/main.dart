@@ -40,6 +40,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Disifin',
       theme: appTheme,
+      themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
       initialRoute: isLoggedIn
           ? '/main'

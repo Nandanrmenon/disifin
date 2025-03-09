@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 final ThemeData appTheme = ThemeData(
   visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -27,6 +28,11 @@ final ThemeData appTheme = ThemeData(
     backgroundColor: Colors.black,
     elevation: 0,
     scrolledUnderElevation: 0,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
   ),
   chipTheme: ChipThemeData(
     shape: RoundedRectangleBorder(

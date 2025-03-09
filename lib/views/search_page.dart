@@ -118,33 +118,46 @@ class _SearchPageState extends State<SearchPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: IconButton(
-                    icon: const Icon(Symbols.search),
-                    onPressed: () => _performSearch(_searchController.text),
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _songResults = [];
-                              _albumResults = [];
-                              _artistResults = [];
-                            });
-                          },
-                        )
-                      : null,
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(0),
+                  borderSide: BorderSide.none,
                 ),
-                onChanged: _performSearch, // Call _performSearch on text change
-                onSubmitted: _performSearch,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(0),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(0),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: IconButton(
+                  icon: const Icon(
+                    Symbols.search,
+                    color: Colors.white54,
+                  ),
+                  onPressed: () => _performSearch(_searchController.text),
+                ),
+                hintStyle: TextStyle(color: Colors.white54),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white54),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _songResults = [];
+                            _albumResults = [];
+                            _artistResults = [];
+                          });
+                        },
+                      )
+                    : null,
               ),
+              onChanged: _performSearch, // Call _performSearch on text change
+              onSubmitted: _performSearch,
             ),
             Expanded(
               child: _isLoading
@@ -168,119 +181,127 @@ class _SearchPageState extends State<SearchPage> {
                                 style: Theme.of(context).textTheme.labelLarge),
                           ],
                         )) // Show text if nothing is searched
-                      : ListView(
-                          children: [
-                            if (_songResults.isNotEmpty) ...[
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text('Songs',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                              ),
-                              ..._songResults.take(5).map((result) => ListTile(
-                                    leading: SizedBox(
-                                      width: 50,
-                                      height: 50,
-                                      child: result['ImageUrl']!.isNotEmpty
-                                          ? ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              child: Image.network(
-                                                result['ImageUrl']!,
-                                                errorBuilder: (context, error,
-                                                        stackTrace) =>
-                                                    CircleAvatar(
-                                                        child: const Icon(
-                                                            Icons.music_note)),
-                                              ),
-                                            )
-                                          : CircleAvatar(
-                                              child:
-                                                  const Icon(Icons.music_note)),
-                                    ),
-                                    title: Text(result['Name']!),
-                                  )),
-                              if (_songResults.length > 5)
-                                ListTile(
-                                  onTap: () =>
-                                      _viewAllResults('Songs', _songResults),
-                                  title: const Text('View All Songs'),
-                                  trailing: const Icon(
-                                      Symbols.arrow_right_alt_rounded),
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: ListView(
+                            children: [
+                              if (_songResults.isNotEmpty) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text('Songs',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
                                 ),
-                            ],
-                            if (_albumResults.isNotEmpty) ...[
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text('Albums',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                              ),
-                              ..._albumResults.take(5).map((result) => ListTile(
-                                    leading: SizedBox(
-                                      width: 50,
-                                      height: 50,
-                                      child: result['ImageUrl']!.isNotEmpty
-                                          ? Image.network(
-                                              result['ImageUrl']!,
-                                              errorBuilder: (context, error,
-                                                      stackTrace) =>
-                                                  const Icon(Icons.album),
-                                            )
-                                          : const Icon(Icons.album),
-                                    ),
-                                    title: Text(result['Name']!),
-                                  )),
-                              if (_albumResults.length > 5)
-                                ListTile(
-                                  onTap: () =>
-                                      _viewAllResults('Albums', _albumResults),
-                                  title: const Text('View All Albums'),
-                                  trailing: const Icon(
-                                      Symbols.arrow_right_alt_rounded),
-                                ),
-                            ],
-                            if (_artistResults.isNotEmpty) ...[
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text('Artists',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                              ),
-                              ..._artistResults
-                                  .take(5)
-                                  .map((result) => ListTile(
-                                        leading: SizedBox(
-                                          width: 50,
-                                          height: 50,
-                                          child: result['ImageUrl']!.isNotEmpty
-                                              ? Image.network(
+                                ..._songResults.take(5).map((result) =>
+                                    ListTile(
+                                      leading: SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: result['ImageUrl']!.isNotEmpty
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                child: Image.network(
                                                   result['ImageUrl']!,
                                                   errorBuilder: (context, error,
                                                           stackTrace) =>
                                                       CircleAvatar(
                                                           child: const Icon(
-                                                              Icons.person)),
-                                                )
-                                              : CircleAvatar(
-                                                  child:
-                                                      const Icon(Icons.person)),
-                                        ),
-                                        title: Text(result['Name']!),
-                                      )),
-                              if (_artistResults.length > 5)
-                                ListTile(
-                                  onTap: () => _viewAllResults(
-                                      'Artists', _artistResults),
-                                  title: const Text('View All Artists'),
-                                  trailing: const Icon(
-                                      Symbols.arrow_right_alt_rounded),
+                                                              Icons
+                                                                  .music_note)),
+                                                ),
+                                              )
+                                            : CircleAvatar(
+                                                child: const Icon(
+                                                    Icons.music_note)),
+                                      ),
+                                      title: Text(result['Name']!),
+                                    )),
+                                if (_songResults.length > 5)
+                                  ListTile(
+                                    onTap: () =>
+                                        _viewAllResults('Songs', _songResults),
+                                    title: const Text('View All Songs'),
+                                    trailing: const Icon(
+                                        Symbols.arrow_right_alt_rounded),
+                                  ),
+                              ],
+                              if (_albumResults.isNotEmpty) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text('Albums',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
                                 ),
+                                ..._albumResults
+                                    .take(5)
+                                    .map((result) => ListTile(
+                                          leading: SizedBox(
+                                            width: 50,
+                                            height: 50,
+                                            child: result['ImageUrl']!
+                                                    .isNotEmpty
+                                                ? Image.network(
+                                                    result['ImageUrl']!,
+                                                    errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                        const Icon(Icons.album),
+                                                  )
+                                                : const Icon(Icons.album),
+                                          ),
+                                          title: Text(result['Name']!),
+                                        )),
+                                if (_albumResults.length > 5)
+                                  ListTile(
+                                    onTap: () => _viewAllResults(
+                                        'Albums', _albumResults),
+                                    title: const Text('View All Albums'),
+                                    trailing: const Icon(
+                                        Symbols.arrow_right_alt_rounded),
+                                  ),
+                              ],
+                              if (_artistResults.isNotEmpty) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text('Artists',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                ..._artistResults.take(5).map((result) =>
+                                    ListTile(
+                                      leading: SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: result['ImageUrl']!.isNotEmpty
+                                            ? Image.network(
+                                                result['ImageUrl']!,
+                                                errorBuilder: (context, error,
+                                                        stackTrace) =>
+                                                    CircleAvatar(
+                                                        child: const Icon(
+                                                            Icons.person)),
+                                              )
+                                            : CircleAvatar(
+                                                child:
+                                                    const Icon(Icons.person)),
+                                      ),
+                                      title: Text(result['Name']!),
+                                    )),
+                                if (_artistResults.length > 5)
+                                  ListTile(
+                                    onTap: () => _viewAllResults(
+                                        'Artists', _artistResults),
+                                    title: const Text('View All Artists'),
+                                    trailing: const Icon(
+                                        Symbols.arrow_right_alt_rounded),
+                                  ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
             ),
           ],
