@@ -149,8 +149,9 @@ class _SearchPageState extends State<SearchPage> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child:
-                          CircularProgressIndicator()) // Show loading indicator
+                      child: CircularProgressIndicator(
+                      year2023: false,
+                    )) // Show loading indicator
                   : _songResults.isEmpty &&
                           _albumResults.isEmpty &&
                           _artistResults.isEmpty

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -16,8 +15,6 @@ class TrackInfo {
 
 class AudioPlayerService {
   static final AudioPlayer _audioPlayer = AudioPlayer();
-  static const MethodChannel _channel =
-      MethodChannel('com.nahnah.disifin/audio');
   static String? currentTrackName;
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
@@ -38,9 +35,9 @@ class AudioPlayerService {
         ),
       ));
       await _audioPlayer.play();
-      await _channel.invokeMethod('play', {'url': url});
       _addToHistory(TrackInfo(
           name: trackName, imageUrl: trackImageUrl, artist: trackArtist));
+      print('Added to history: $trackName'); // Debug print
     } catch (e) {
       print('Error playing audio: $e');
     }
@@ -66,12 +63,14 @@ class AudioPlayerService {
       await _audioPlayer.setAudioSource(playlist);
       currentTrackName = trackNames[0];
       currentTrackImageUrl = trackImageUrls[0];
+      print('play');
       await _audioPlayer.play();
-      await _channel.invokeMethod('play', {'url': urls[0]});
       _addToHistory(TrackInfo(
           name: trackNames[0],
           imageUrl: trackImageUrls[0],
           artist: trackArtists[0]));
+
+      print('Added to history: ${trackNames[0]}'); // Debug print
     } catch (e) {
       print('Error playing audio queue: $e');
     }
@@ -80,7 +79,6 @@ class AudioPlayerService {
   static Future<void> resume() async {
     try {
       await _audioPlayer.play();
-      await _channel.invokeMethod('play');
     } catch (e) {
       print('Error resuming audio: $e');
     }
@@ -89,7 +87,6 @@ class AudioPlayerService {
   static Future<void> pause() async {
     try {
       await _audioPlayer.pause();
-      await _channel.invokeMethod('pause');
     } catch (e) {
       print('Error pausing audio: $e');
     }
@@ -98,7 +95,6 @@ class AudioPlayerService {
   static Future<void> stop() async {
     try {
       await _audioPlayer.stop();
-      await _channel.invokeMethod('stop');
     } catch (e) {
       print('Error stopping audio: $e');
     }
@@ -115,13 +111,16 @@ class AudioPlayerService {
   static Future<void> skipToNext() async {
     try {
       await _audioPlayer.seekToNext();
-      await _channel.invokeMethod('next');
       final currentTrack = await _audioPlayer.currentIndexStream.first;
       if (currentTrack != null) {
-        final trackInfo = _audioPlayer.sequence![currentTrack].tag as TrackInfo;
-        currentTrackName = trackInfo.name;
-        currentTrackImageUrl = trackInfo.imageUrl;
-        _addToHistory(trackInfo);
+        final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
+        currentTrackName = mediaItem.title;
+        currentTrackImageUrl = mediaItem.artUri?.toString();
+        _addToHistory(TrackInfo(
+          name: mediaItem.title,
+          imageUrl: mediaItem.artUri?.toString(),
+          artist: mediaItem.artist,
+        ));
       }
     } catch (e) {
       print('Error skipping to next track: $e');
@@ -131,13 +130,16 @@ class AudioPlayerService {
   static Future<void> skipToPrevious() async {
     try {
       await _audioPlayer.seekToPrevious();
-      await _channel.invokeMethod('previous');
       final currentTrack = await _audioPlayer.currentIndexStream.first;
       if (currentTrack != null) {
-        final trackInfo = _audioPlayer.sequence![currentTrack].tag as TrackInfo;
-        currentTrackName = trackInfo.name;
-        currentTrackImageUrl = trackInfo.imageUrl;
-        _addToHistory(trackInfo);
+        final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
+        currentTrackName = mediaItem.title;
+        currentTrackImageUrl = mediaItem.artUri?.toString();
+        _addToHistory(TrackInfo(
+          name: mediaItem.title,
+          imageUrl: mediaItem.artUri?.toString(),
+          artist: mediaItem.artist,
+        ));
       }
     } catch (e) {
       print('Error skipping to previous track: $e');
@@ -157,7 +159,8 @@ class AudioPlayerService {
 
   static List<String> get currentQueue =>
       _audioPlayer.sequence
-          ?.map((source) => (source.tag as TrackInfo?)?.name ?? 'Unknown Track')
+          ?.map(
+              (source) => (source.tag as MediaItem?)?.title ?? 'Unknown Track')
           .toList() ??
       [];
 
@@ -232,6 +235,8 @@ class AudioPlayerService {
     if (_history.length > 30) {
       _history.removeLast();
     }
+    print(
+        'Current history: ${_history.map((track) => track.name).toList()}'); // Debug print
   }
 
   static List<TrackInfo> get history => _history;

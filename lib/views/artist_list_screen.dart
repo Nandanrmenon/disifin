@@ -121,7 +121,10 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                    year2023: false,
+                  ))
                 : _errorMessage != null
                     ? Center(
                         child: Text(_errorMessage!,

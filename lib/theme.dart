@@ -10,13 +10,19 @@ final ThemeData appTheme = ThemeData(
     outlineVariant: Colors.white10,
     dynamicSchemeVariant: DynamicSchemeVariant.content,
   ),
+  pageTransitionsTheme: PageTransitionsTheme(
+    builders: Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
+      TargetPlatform.values,
+      value: (_) => const FadeForwardsPageTransitionsBuilder(),
+    ),
+  ),
   iconTheme: const IconThemeData(fill: 0, weight: 300, color: Colors.white),
   useMaterial3: true,
-  sliderTheme: SliderThemeData(
-    trackHeight: 10,
-    // activeTrackColor: Colors.white,
-    // inactiveTrackColor: Colors.grey,
-  ),
+  // sliderTheme: SliderThemeData(
+  //   trackHeight: 10,
+  //   // activeTrackColor: Colors.white,
+  //   // inactiveTrackColor: Colors.grey,
+  // ),
   appBarTheme: AppBarTheme(
     backgroundColor: Colors.black,
     elevation: 0,

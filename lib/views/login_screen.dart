@@ -93,7 +93,10 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (_isLoading) LinearProgressIndicator(),
+                if (_isLoading)
+                  LinearProgressIndicator(
+                    year2023: false,
+                  ),
                 Spacer(),
                 Text(
                   'Disifin',

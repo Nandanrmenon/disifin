@@ -152,6 +152,7 @@ class _MainScreenState extends State<MainScreen> {
                                   _sliderValue =
                                       position.inMilliseconds.toDouble();
                                   return LinearProgressIndicator(
+                                    year2023: false,
                                     value: duration.inMilliseconds > 0
                                         ? _sliderValue /
                                             duration.inMilliseconds.toDouble()

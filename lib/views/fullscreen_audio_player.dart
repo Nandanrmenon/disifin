@@ -4,6 +4,7 @@ import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FullscreenAudioPlayer extends StatefulWidget {
   const FullscreenAudioPlayer({super.key});
@@ -14,6 +15,20 @@ class FullscreenAudioPlayer extends StatefulWidget {
 
 class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   double _sliderValue = 0.0;
+  int _sliderStyle = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSliderStyle();
+  }
+
+  Future<void> _loadSliderStyle() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _sliderStyle = prefs.getInt('sliderStyle') ?? 1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +42,10 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
               final trackImageUrl = trackInfo?.imageUrl;
               return trackImageUrl != null && trackImageUrl.isNotEmpty
                   ? ImageFiltered(
-                      imageFilter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      imageFilter: ui.ImageFilter.blur(
+                        sigmaX: 20,
+                        sigmaY: 20,
+                      ),
                       child: Image.network(
                         trackImageUrl,
                         width: double.infinity,
@@ -140,21 +158,40 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           _sliderValue = position.inMilliseconds.toDouble();
                           return Column(
                             children: [
-                              SliderTheme(
-                                data: SliderThemeData(
-                                  trackHeight: 20,
-                                  thumbShape: RoundSliderThumbShape(
-                                      enabledThumbRadius: 8,
-                                      elevation: 2,
-                                      pressedElevation: 0),
-                                  overlappingShapeStrokeColor: Colors.black,
-                                  activeTrackColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer,
-                                  thumbColor:
-                                      Theme.of(context).colorScheme.primary,
-                                ),
-                                child: Slider(
+                              if (_sliderStyle == 1)
+                                SliderTheme(
+                                  data: SliderThemeData(
+                                    trackHeight: 20,
+                                    thumbShape: RoundSliderThumbShape(
+                                        enabledThumbRadius: 8,
+                                        elevation: 2,
+                                        pressedElevation: 0),
+                                    overlappingShapeStrokeColor: Colors.black,
+                                    activeTrackColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    thumbColor:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  child: Slider(
+                                    value: _sliderValue.clamp(0.0,
+                                        duration.inMilliseconds.toDouble()),
+                                    min: 0.0,
+                                    max: duration.inMilliseconds.toDouble(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _sliderValue = value;
+                                      });
+                                    },
+                                    onChangeEnd: (value) {
+                                      AudioPlayerService.seek(Duration(
+                                          milliseconds: value.toInt()));
+                                    },
+                                  ),
+                                )
+                              else
+                                Slider(
+                                  year2023: false,
                                   value: _sliderValue.clamp(
                                       0.0, duration.inMilliseconds.toDouble()),
                                   min: 0.0,
@@ -169,7 +206,6 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                                         Duration(milliseconds: value.toInt()));
                                   },
                                 ),
-                              ),
                               Row(
                                 children: [
                                   const SizedBox(width: 25),
@@ -206,18 +242,21 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           final playing = playerState?.playing;
                           if (processingState == ProcessingState.loading ||
                               processingState == ProcessingState.buffering) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator(
+                              year2023: false,
+                            );
                           } else if (playing != true) {
                             return IconButton.filled(
-                              icon: const Icon(
+                              icon: Icon(
                                 Symbols.play_arrow,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fill: 1,
                               ),
                               iconSize: 48.0,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(
                                   RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15)),
+                                      borderRadius: BorderRadius.circular(50)),
                                 ),
                               ),
                               onPressed: AudioPlayerService.resume,
@@ -225,15 +264,16 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           } else if (processingState !=
                               ProcessingState.completed) {
                             return IconButton.filled(
-                              icon: const Icon(
+                              icon: Icon(
                                 Symbols.pause,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fill: 1,
                               ),
                               iconSize: 48.0,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(
                                   RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50)),
+                                      borderRadius: BorderRadius.circular(15)),
                                 ),
                               ),
                               onPressed: AudioPlayerService.pause,

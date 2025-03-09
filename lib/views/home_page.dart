@@ -1,4 +1,5 @@
 import 'package:disifin/services/audio_player_service.dart';
+import 'package:disifin/views/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -20,6 +21,15 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Symbols.logout),
             onPressed: () => _logout(context),
+          ),
+          IconButton(
+            icon: const Icon(Symbols.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
           ),
         ],
       ),
