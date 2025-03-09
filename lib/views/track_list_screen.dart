@@ -179,6 +179,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
                             style: const TextStyle(color: Colors.red)))
                     : _isGridView
                         ? GridView.builder(
+                            padding: EdgeInsets.only(bottom: 200),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -245,6 +246,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
                           )
                         : ListView.builder(
                             itemCount: _tracks.length,
+                            padding: EdgeInsets.only(bottom: 200),
                             itemBuilder: (context, index) {
                               final track = _tracks[index];
                               final imageUrl = track['ImageTags'] != null &&

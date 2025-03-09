@@ -139,6 +139,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                             style: const TextStyle(color: Colors.red)))
                     : _isGridView
                         ? GridView.builder(
+                            padding: EdgeInsets.only(bottom: 200),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -229,6 +230,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                           )
                         : ListView.builder(
                             itemCount: _albums.length,
+                            padding: EdgeInsets.only(bottom: 200),
                             itemBuilder: (context, index) {
                               final album = _albums[index];
                               final artists =

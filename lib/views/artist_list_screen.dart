@@ -131,6 +131,7 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                             style: const TextStyle(color: Colors.red)))
                     : _isGridView
                         ? GridView.builder(
+                            padding: EdgeInsets.only(bottom: 200),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -200,6 +201,7 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                             },
                           )
                         : ListView.builder(
+                            padding: EdgeInsets.only(bottom: 200),
                             itemCount: _artists.length,
                             itemBuilder: (context, index) {
                               final artist = _artists[index];
