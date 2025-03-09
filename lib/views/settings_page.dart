@@ -101,6 +101,44 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+              child: const Icon(Symbols.delete),
+            ),
+            title: const Text('Clear History'),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirm Clear History'),
+                  content:
+                      const Text('Are you sure you want to clear the history?'),
+                  actionsAlignment: MainAxisAlignment.spaceEvenly,
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                await AudioPlayerService.clearHistory();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text('History cleared')),
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.errorContainer,
               foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
               child: const Icon(Symbols.logout),
