@@ -157,25 +157,67 @@ class _HomePageState extends State<HomePage> {
               if (AudioPlayerService.history.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Recently Played',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Recently Played',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Spacer(),
+                      if (AudioPlayerService.history.length >= 6)
+                        TextButton(
+                          onPressed: () {
+                            // Navigate to the full history screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FullHistoryScreen(),
+                              ),
+                            );
+                          },
+                          child: Text('View All'),
+                        ),
+                    ],
                   ),
                 ),
               if (AudioPlayerService.history.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: AudioPlayerService.history.length,
-                      itemBuilder: (context, index) {
-                        final trackInfo = AudioPlayerService.history[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 4 / 1.5,
+                    ),
+                    // scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: AudioPlayerService.history.length > 6
+                        ? 6
+                        : AudioPlayerService.history.length,
+                    itemBuilder: (context, index) {
+                      if (index >= AudioPlayerService.history.length) {
+                        return SizedBox.shrink();
+                      }
+                      final trackInfo = AudioPlayerService.history[index];
+                      return Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  width: 2,
+                                  strokeAlign: 1.0,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant),
+                              // color: Theme.of(context).colorScheme.primaryFixed,
+                              borderRadius: BorderRadius.circular(5)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0, vertical: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               if (trackInfo.imageUrl != null &&
                                   trackInfo.imageUrl!.isNotEmpty)
@@ -183,16 +225,20 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(10),
                                   child: Image.network(
                                     trackInfo.imageUrl!,
-                                    width: 150,
-                                    height: 150,
+                                    width: 50,
+                                    height: 50,
                                     fit: BoxFit.cover,
                                   ),
                                 )
                               else
                                 Container(
-                                  width: 100,
-                                  height: 100,
-                                  color: Theme.of(context).canvasColor,
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .tertiary,
+                                      borderRadius: BorderRadius.circular(5)),
                                   child:
                                       const Icon(Symbols.music_note, size: 50),
                                 ),
@@ -200,24 +246,27 @@ class _HomePageState extends State<HomePage> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   (trackInfo.name ?? 'Unknown Track').length >
-                                          16
-                                      ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 16)}...'
+                                          12
+                                      ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 12)}...'
                                       : trackInfo.name ?? 'Unknown Track',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                    // fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
+              SizedBox(
+                height: 8,
+              ),
               if (recommendations.isNotEmpty)
                 Padding(
                   padding:
@@ -255,9 +304,13 @@ class _HomePageState extends State<HomePage> {
                                 )
                               else
                                 Container(
-                                  width: 100,
-                                  height: 100,
-                                  color: Theme.of(context).canvasColor,
+                                  width: 150,
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                      borderRadius: BorderRadius.circular(10)),
                                   child:
                                       const Icon(Symbols.music_note, size: 50),
                                 ),
@@ -299,5 +352,46 @@ class _HomePageState extends State<HomePage> {
     } else {
       return 'Good Evening';
     }
+  }
+}
+
+class FullHistoryScreen extends StatelessWidget {
+  const FullHistoryScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('History'),
+      ),
+      body: ListView.builder(
+        itemCount: AudioPlayerService.history.length,
+        itemBuilder: (context, index) {
+          if (index >= AudioPlayerService.history.length) {
+            return SizedBox.shrink();
+          }
+          final trackInfo = AudioPlayerService.history[index];
+          return ListTile(
+            leading:
+                trackInfo.imageUrl != null && trackInfo.imageUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Image.network(
+                          trackInfo.imageUrl!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const CircleAvatar(
+                        radius: 25,
+                        child: Icon(Symbols.music_note),
+                      ),
+            title: Text(trackInfo.name ?? 'Unknown Track'),
+            subtitle: Text(trackInfo.artist ?? 'Unknown Artist'),
+          );
+        },
+      ),
+    );
   }
 }

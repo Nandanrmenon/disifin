@@ -241,22 +241,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                ElevatedButton.icon(
-                  onPressed: _playAllTracks,
-                  icon: Icon(
-                    Symbols.play_arrow_rounded,
-                  ),
-                  label: const Text('Play All'),
-                ),
-                SizedBox(width: 8),
-                IconButton.outlined(
-                  onPressed: () {},
-                  isSelected: false,
-                  icon: Icon(Symbols.shuffle),
-                ),
-                Spacer(),
                 IconButton(
-                  icon: Icon(Icons.sort),
+                  icon: Icon(Icons.sort_by_alpha),
                   onPressed: () => _showSortOptions(context),
                 ),
                 IconButton(
@@ -267,6 +253,20 @@ class _TrackListScreenState extends State<TrackListScreen> {
                       _saveViewPreference(_isGridView);
                     });
                   },
+                ),
+                Spacer(),
+                IconButton.outlined(
+                  onPressed: () {},
+                  isSelected: false,
+                  icon: Icon(Symbols.shuffle),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _playAllTracks,
+                  icon: Icon(
+                    Symbols.play_arrow_rounded,
+                  ),
+                  label: const Text('Play All'),
                 ),
               ],
             ),
