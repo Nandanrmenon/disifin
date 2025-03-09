@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:disifin/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class TrackInfo {
   final String? name;
@@ -36,6 +39,26 @@ class AudioPlayerService {
   static String? currentTrackName;
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
+  static Database? _database;
+
+  static Future<void> _initDatabase() async {
+    if (_database != null) return;
+    _database = await openDatabase(
+      join(await getDatabasesPath(), 'app_database.db'),
+      onCreate: (db, version) {
+        db.execute(
+          'CREATE TABLE cache(key TEXT PRIMARY KEY, value TEXT)',
+        );
+        db.execute(
+          'CREATE TABLE login_credentials(id INTEGER PRIMARY KEY, username TEXT, password TEXT)',
+        );
+        db.execute(
+          'CREATE TABLE song_history(id INTEGER PRIMARY KEY, name TEXT, imageUrl TEXT, artist TEXT)',
+        );
+      },
+      version: 1,
+    );
+  }
 
   static Future<void> _savePlayerState() async {
     final prefs = await SharedPreferences.getInstance();
@@ -50,6 +73,8 @@ class AudioPlayerService {
       await prefs.setString('currentTrackArtist', currentTrack.artist ?? '');
       await prefs.setInt(
           'currentTrackPosition', _audioPlayer.position.inMilliseconds);
+      await DatabaseService.saveCache(
+          'recentlyPlayedImage', currentTrack.artUri?.toString() ?? '');
     }
   }
 
@@ -87,9 +112,10 @@ class AudioPlayerService {
           artist: trackArtist,
         ),
       ));
-      await _audioPlayer.play();
-      _addToHistory(TrackInfo(
-          name: trackName, imageUrl: trackImageUrl, artist: trackArtist));
+      await _audioPlayer.play().then(
+            (value) => _addToHistory(TrackInfo(
+                name: trackName, imageUrl: trackImageUrl, artist: trackArtist)),
+          );
       _savePlayerState();
       debugPrint('Added to history: $trackName'); // Debug print
     } catch (e) {
@@ -118,11 +144,13 @@ class AudioPlayerService {
       currentTrackName = trackNames[0];
       currentTrackImageUrl = trackImageUrls[0];
       debugPrint('play');
-      await _audioPlayer.play();
-      _addToHistory(TrackInfo(
-          name: trackNames[0],
-          imageUrl: trackImageUrls[0],
-          artist: trackArtists[0]));
+
+      await _audioPlayer.play().then(
+            (value) => _addToHistory(TrackInfo(
+                name: trackNames[0],
+                imageUrl: trackImageUrls[0],
+                artist: trackArtists[0])),
+          );
 
       debugPrint('Added to history: ${trackNames[0]}'); // Debug print
     } catch (e) {
@@ -173,11 +201,14 @@ class AudioPlayerService {
         final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
         currentTrackName = mediaItem.title;
         currentTrackImageUrl = mediaItem.artUri?.toString();
-        _addToHistory(TrackInfo(
-          name: mediaItem.title,
-          imageUrl: mediaItem.artUri?.toString(),
-          artist: mediaItem.artist,
-        ));
+
+        _audioPlayer.play().then(
+              (value) => _addToHistory(TrackInfo(
+                name: mediaItem.title,
+                imageUrl: mediaItem.artUri?.toString(),
+                artist: mediaItem.artist,
+              )),
+            );
       }
     } catch (e) {
       debugPrint('Error skipping to next track: $e');
@@ -192,11 +223,13 @@ class AudioPlayerService {
         final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
         currentTrackName = mediaItem.title;
         currentTrackImageUrl = mediaItem.artUri?.toString();
-        _addToHistory(TrackInfo(
-          name: mediaItem.title,
-          imageUrl: mediaItem.artUri?.toString(),
-          artist: mediaItem.artist,
-        ));
+        _audioPlayer.play().then(
+              (value) => _addToHistory(TrackInfo(
+                name: mediaItem.title,
+                imageUrl: mediaItem.artUri?.toString(),
+                artist: mediaItem.artist,
+              )),
+            );
       }
     } catch (e) {
       debugPrint('Error skipping to previous track: $e');
@@ -289,21 +322,15 @@ class AudioPlayerService {
   }
 
   static Future<void> _saveHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyJson =
-        jsonEncode(_history.map((track) => track.toJson()).toList());
-    await prefs.setString('history', historyJson);
+    await DatabaseService.clearSongHistory();
+    for (var track in _history) {
+      await DatabaseService.saveSongHistory(track);
+    }
   }
 
   static Future<void> loadHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyJson = prefs.getString('history');
-    if (historyJson != null) {
-      final List<dynamic> historyList = jsonDecode(historyJson);
-      _history.clear();
-      _history.addAll(
-          historyList.map((track) => TrackInfo.fromJson(track)).toList());
-    }
+    _history.clear();
+    _history.addAll(await DatabaseService.loadSongHistory());
   }
 
   static void _addToHistory(TrackInfo trackInfo) {
@@ -330,5 +357,42 @@ class AudioPlayerService {
   static Future<void> clearHistory() async {
     _history.clear();
     await _saveHistory();
+  }
+
+  static Future<void> saveCache(String key, String value) async {
+    await DatabaseService.saveCache(key, value);
+  }
+
+  static Future<String?> loadCache(String key) async {
+    return await DatabaseService.loadCache(key);
+  }
+
+  static Future<void> clearCache(String key) async {
+    await DatabaseService.clearCache(key);
+  }
+
+  static Future<void> saveLoginCredentials(
+      String username, String password) async {
+    await DatabaseService.saveLoginCredentials(username, password);
+  }
+
+  static Future<Map<String, String>?> loadLoginCredentials() async {
+    return await DatabaseService.loadLoginCredentials();
+  }
+
+  static Future<void> clearLoginCredentials() async {
+    await DatabaseService.clearLoginCredentials();
+  }
+
+  static Future<void> saveSongHistory(TrackInfo trackInfo) async {
+    await DatabaseService.saveSongHistory(trackInfo);
+  }
+
+  static Future<List<TrackInfo>> loadSongHistory() async {
+    return await DatabaseService.loadSongHistory();
+  }
+
+  static Future<void> clearSongHistory() async {
+    await DatabaseService.clearSongHistory();
   }
 }

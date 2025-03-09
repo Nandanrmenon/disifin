@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/views/fullscreen_audio_player.dart';
 import 'package:disifin/views/home_page.dart';
@@ -18,6 +19,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   double _sliderValue = 0.0;
+  final PageController _pageController = PageController();
 
   static const List<Widget> _pages = <Widget>[
     HomePage(),
@@ -68,176 +70,188 @@ class _MainScreenState extends State<MainScreen> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      body: Stack(
+      body: PageTransitionSwitcher(
+        duration: const Duration(milliseconds: 200),
+        transitionBuilder: (
+          Widget child,
+          Animation<double> primaryAnimation,
+          Animation<double> secondaryAnimation,
+        ) {
+          return FadeTransition(
+            opacity: primaryAnimation,
+            child: ScaleTransition(
+              filterQuality: FilterQuality.high,
+              scale: Tween<double>(
+                begin: 0.99,
+                end: 1.0,
+              ).animate(primaryAnimation),
+              child: child,
+            ),
+          );
+        },
+        child: _pages[_selectedIndex],
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _pages[_selectedIndex],
-          Positioned(
-            bottom: bottomPadding > 0
-                ? 10
-                : 80, // Adjust position based on keyboard visibility
-            left: 0,
-            right: 0,
-            child: GestureDetector(
-              onVerticalDragEnd: (details) => _showFullscreenPlayer(context),
-              child: StreamBuilder<PlayerState>(
-                stream: AudioPlayerService.playerStateStream,
-                builder: (context, snapshot) {
-                  final playerState = snapshot.data;
-                  final playing = playerState?.playing ?? false;
-                  final processingState = playerState?.processingState;
-                  if (processingState == ProcessingState.idle) {
-                    return const SizedBox.shrink();
-                  }
-                  return GestureDetector(
-                    onTap: () {
-                      _showFullscreenPlayer(context);
-                    },
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 12),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                StreamBuilder<TrackInfo?>(
-                                  stream: AudioPlayerService.currentTrackStream,
-                                  builder: (context, snapshot) {
-                                    final trackInfo = snapshot.data;
-                                    final trackName =
-                                        trackInfo?.name ?? 'Now Playing';
-                                    final trackImageUrl = trackInfo?.imageUrl;
-                                    return Expanded(
-                                      child: Row(
-                                        children: [
-                                          if (trackImageUrl != null &&
-                                              trackImageUrl.isNotEmpty)
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: Image.network(
-                                                trackImageUrl,
-                                                width: 50,
-                                                height: 50,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            )
-                                          else
-                                            CircleAvatar(
-                                              radius: 25,
-                                              child: const Icon(
-                                                  Symbols.music_note),
+          GestureDetector(
+            onVerticalDragEnd: (details) => _showFullscreenPlayer(context),
+            child: StreamBuilder<PlayerState>(
+              stream: AudioPlayerService.playerStateStream,
+              builder: (context, snapshot) {
+                final playerState = snapshot.data;
+                final playing = playerState?.playing ?? false;
+                final processingState = playerState?.processingState;
+                if (processingState == ProcessingState.idle) {
+                  return const SizedBox.shrink();
+                }
+                return GestureDetector(
+                  onTap: () {
+                    _showFullscreenPlayer(context);
+                  },
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 12),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              StreamBuilder<TrackInfo?>(
+                                stream: AudioPlayerService.currentTrackStream,
+                                builder: (context, snapshot) {
+                                  final trackInfo = snapshot.data;
+                                  final trackName =
+                                      trackInfo?.name ?? 'Now Playing';
+                                  final trackImageUrl = trackInfo?.imageUrl;
+                                  return Expanded(
+                                    child: Row(
+                                      children: [
+                                        if (trackImageUrl != null &&
+                                            trackImageUrl.isNotEmpty)
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Image.network(
+                                              trackImageUrl,
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
                                             ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              trackName,
-                                              maxLines: 1,
-                                              style: TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis),
-                                            ),
+                                          )
+                                        else
+                                          CircleAvatar(
+                                            radius: 25,
+                                            child:
+                                                const Icon(Symbols.music_note),
                                           ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            trackName,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Symbols.favorite),
+                                onPressed: () {},
+                              ),
+                              IconButton.filledTonal(
+                                icon: Icon(
+                                  playing ? Symbols.pause : Symbols.play_arrow,
                                 ),
-                                IconButton(
-                                  icon: const Icon(Symbols.favorite),
-                                  onPressed: () {},
-                                ),
-                                IconButton.filledTonal(
-                                  icon: Icon(
-                                    playing
-                                        ? Symbols.pause
-                                        : Symbols.play_arrow,
-                                  ),
-                                  onPressed: () {
-                                    if (playing) {
-                                      AudioPlayerService.pause();
-                                    } else {
-                                      AudioPlayerService.resume();
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            StreamBuilder<Duration?>(
-                              stream: AudioPlayerService.durationStream,
-                              builder: (context, snapshot) {
-                                final duration = snapshot.data ?? Duration.zero;
-                                return StreamBuilder<Duration>(
-                                  stream: AudioPlayerService.positionStream,
-                                  builder: (context, snapshot) {
-                                    final position =
-                                        snapshot.data ?? Duration.zero;
-                                    _sliderValue =
-                                        position.inMilliseconds.toDouble();
-                                    return LinearProgressIndicator(
-                                      year2023: false,
-                                      value: duration.inMilliseconds > 0
-                                          ? _sliderValue /
-                                              duration.inMilliseconds.toDouble()
-                                          : 0.0,
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                                onPressed: () {
+                                  if (playing) {
+                                    AudioPlayerService.pause();
+                                  } else {
+                                    AudioPlayerService.resume();
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          StreamBuilder<Duration?>(
+                            stream: AudioPlayerService.durationStream,
+                            builder: (context, snapshot) {
+                              final duration = snapshot.data ?? Duration.zero;
+                              return StreamBuilder<Duration>(
+                                stream: AudioPlayerService.positionStream,
+                                builder: (context, snapshot) {
+                                  final position =
+                                      snapshot.data ?? Duration.zero;
+                                  _sliderValue =
+                                      position.inMilliseconds.toDouble();
+                                  return LinearProgressIndicator(
+                                    year2023: false,
+                                    value: duration.inMilliseconds > 0
+                                        ? _sliderValue /
+                                            duration.inMilliseconds.toDouble()
+                                        : 0.0,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(0, 0, 0, 0),
+                  Color.fromARGB(255, 0, 0, 0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
+            ),
+            child: BottomNavigationBar(
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(Symbols.home_rounded),
+                  activeIcon: Icon(
+                    Symbols.home_rounded,
+                    fill: 1,
+                  ),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Symbols.search_rounded),
+                  activeIcon: Icon(
+                    Symbols.search_rounded,
+                    fill: 1,
+                  ),
+                  label: 'Search',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Symbols.art_track_rounded),
+                  activeIcon: Icon(
+                    Symbols.art_track_rounded,
+                    fill: 1,
+                  ),
+                  label: 'Library',
+                ),
+              ],
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(0, 0, 0, 0),
-              Color.fromARGB(255, 0, 0, 0),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Symbols.home_rounded),
-              activeIcon: Icon(
-                Symbols.home_rounded,
-                fill: 1,
-              ),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Symbols.search_rounded),
-              activeIcon: Icon(
-                Symbols.search_rounded,
-                fill: 1,
-              ),
-              label: 'Search',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Symbols.art_track_rounded),
-              activeIcon: Icon(
-                Symbols.art_track_rounded,
-                fill: 1,
-              ),
-              label: 'Library',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-        ),
       ),
       extendBody: true,
     );

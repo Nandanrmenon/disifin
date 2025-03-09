@@ -1,3 +1,5 @@
+import 'package:disifin/globals.dart' as globals;
+import 'package:disifin/services/database_service.dart';
 import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
@@ -11,7 +13,6 @@ import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:disifin/globals.dart' as globals;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,8 @@ Future<void> main() async {
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
   );
+
+  await DatabaseService.initDatabase();
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getString('accessToken') != null;
