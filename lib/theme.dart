@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 final ThemeData appTheme = ThemeData(
   visualDensity: VisualDensity.adaptivePlatformDensity,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color.fromARGB(255, 243, 102, 156),
+    seedColor: const Color(0xFFF3669C),
     brightness: Brightness.dark,
     surface: Colors.black,
     outline: Colors.white10,

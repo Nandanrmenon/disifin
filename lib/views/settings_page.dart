@@ -54,11 +54,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _serverName!,
+                          _serverName ?? 'Unknown Server',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
-                          _username!,
+                          _username ?? 'Unknown User',
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ],

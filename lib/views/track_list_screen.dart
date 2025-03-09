@@ -103,6 +103,35 @@ class _TrackListScreenState extends State<TrackListScreen> {
     }
   }
 
+  void _playAllTracks() {
+    final List<String> urls = [];
+    final List<String> trackNames = [];
+    final List<String> trackImageUrls = [];
+    final List<String> trackArtists = [];
+
+    for (final track in _tracks) {
+      final audioUrl =
+          '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+      final imageUrl = track['ImageTags'] != null &&
+              track['ImageTags']['Primary'] != null &&
+              _serverUrl != null
+          ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+          : '';
+      final artist =
+          track['ArtistItems'] != null && track['ArtistItems'].isNotEmpty
+              ? track['ArtistItems'][0]['Name']
+              : 'Unknown Artist';
+
+      urls.add(audioUrl);
+      trackNames.add(track['Name'] ?? 'Unknown');
+      trackImageUrls.add(imageUrl);
+      trackArtists.add(artist);
+    }
+
+    AudioPlayerService.playQueue(
+        urls, trackNames, trackImageUrls, trackArtists);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +142,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
             child: Row(
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: _playAllTracks,
                   icon: Icon(
                     Symbols.play_arrow_rounded,
                   ),
