@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
@@ -11,6 +12,22 @@ class TrackInfo {
   final String? artist; // Add artist property
 
   TrackInfo({this.name, this.imageUrl, this.artist});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'imageUrl': imageUrl,
+      'artist': artist,
+    };
+  }
+
+  factory TrackInfo.fromJson(Map<String, dynamic> json) {
+    return TrackInfo(
+      name: json['name'],
+      imageUrl: json['imageUrl'],
+      artist: json['artist'],
+    );
+  }
 }
 
 class AudioPlayerService {
@@ -230,14 +247,39 @@ class AudioPlayerService {
     await prefs.remove('username');
   }
 
+  static Future<void> _saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson =
+        jsonEncode(_history.map((track) => track.toJson()).toList());
+    await prefs.setString('history', historyJson);
+  }
+
+  static Future<void> loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson = prefs.getString('history');
+    if (historyJson != null) {
+      final List<dynamic> historyList = jsonDecode(historyJson);
+      _history.clear();
+      _history.addAll(
+          historyList.map((track) => TrackInfo.fromJson(track)).toList());
+    }
+  }
+
   static void _addToHistory(TrackInfo trackInfo) {
     _history.insert(0, trackInfo);
     if (_history.length > 30) {
       _history.removeLast();
     }
+    _saveHistory();
     print(
         'Current history: ${_history.map((track) => track.name).toList()}'); // Debug print
   }
 
   static List<TrackInfo> get history => _history;
+
+  static List<TrackInfo> getRandomRecommendations() {
+    final random = Random();
+    final shuffledTracks = List<TrackInfo>.from(_history)..shuffle(random);
+    return shuffledTracks.take(5).toList();
+  }
 }
