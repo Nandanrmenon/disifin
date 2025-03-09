@@ -1,5 +1,6 @@
 import 'package:disifin/api/jellyfin_api.dart';
 import 'package:flutter/material.dart';
+import 'package:disifin/globals.dart' as globals;
 
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
@@ -16,10 +17,9 @@ class _MusicPlayerState extends State<MusicPlayer> {
   void initState() {
     super.initState();
     api = JellyfinApi(
-        baseUrl: 'http://100.81.54.83:8096',
+        baseUrl: globals.baseUrl ?? '', //'http://100.81.54.83:8096'
         apiKey: 'a246297a62354f0199e97e2d6c408878');
     musicList = api.getMusic();
-    print('Fetching music from Jellyfin API...');
   }
 
   @override

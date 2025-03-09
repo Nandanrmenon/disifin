@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:disifin/globals.dart' as globals;
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isUrlValid = false;
       _serverName = null;
+      globals.baseUrl = url;
     });
 
     try {

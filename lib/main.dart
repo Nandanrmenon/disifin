@@ -11,6 +11,7 @@ import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:disifin/globals.dart' as globals;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,7 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getString('accessToken') != null;
+  globals.baseUrl = prefs.getString('serverName') ?? '';
 
   runApp(MyApp(isLoggedIn: isLoggedIn));
 }
