@@ -33,37 +33,38 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          StreamBuilder<TrackInfo?>(
-            stream: AudioPlayerService.currentTrackStream,
-            builder: (context, snapshot) {
-              final trackInfo = snapshot.data;
-              final trackImageUrl = trackInfo?.imageUrl;
-              return trackImageUrl != null && trackImageUrl.isNotEmpty
-                  ? ImageFiltered(
-                      imageFilter: ui.ImageFilter.blur(
-                        sigmaX: 20,
-                        sigmaY: 20,
-                      ),
-                      child: Image.network(
-                        trackImageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Container();
-            },
+    return Stack(
+      children: [
+        StreamBuilder<TrackInfo?>(
+          stream: AudioPlayerService.currentTrackStream,
+          builder: (context, snapshot) {
+            final trackInfo = snapshot.data;
+            final trackImageUrl = trackInfo?.imageUrl;
+            return trackImageUrl != null && trackImageUrl.isNotEmpty
+                ? ImageFiltered(
+                    imageFilter: ui.ImageFilter.blur(
+                      sigmaX: 20,
+                      sigmaY: 20,
+                    ),
+                    child: Image.network(
+                      trackImageUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Container();
+          },
+        ),
+        BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            color: Colors.black54,
           ),
-          BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-            ),
-          ),
-          SingleChildScrollView(
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
@@ -311,25 +312,27 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
-                      Spacer(),
-                      IconButton(
-                          onPressed: () => Navigator.push(
-                              context,
-                              CupertinoSheetRoute(
-                                  builder: (context) => const QueueView())),
-                          icon: const Icon(Symbols.queue_music))
-                    ],
-                  ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+          bottomNavigationBar: Padding(
+            padding: EdgeInsets.only(left: 16, right: 16, bottom: 100),
+            child: Row(
+              children: [
+                IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
+                Spacer(),
+                IconButton(
+                    onPressed: () => Navigator.push(
+                        context,
+                        CupertinoSheetRoute(
+                            builder: (context) => const QueueView())),
+                    icon: const Icon(Symbols.queue_music))
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

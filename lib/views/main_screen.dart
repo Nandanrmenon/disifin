@@ -63,12 +63,16 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
     return Scaffold(
       body: Stack(
         children: [
           _pages[_selectedIndex],
           Positioned(
-            bottom: 56,
+            bottom: bottomPadding > 0
+                ? 10
+                : 80, // Adjust position based on keyboard visibility
             left: 0,
             right: 0,
             child: StreamBuilder<PlayerState>(
@@ -77,8 +81,9 @@ class _MainScreenState extends State<MainScreen> {
                 final playerState = snapshot.data;
                 final playing = playerState?.playing ?? false;
                 final processingState = playerState?.processingState;
-                if (processingState == ProcessingState.idle)
+                if (processingState == ProcessingState.idle) {
                   return const SizedBox.shrink();
+                }
                 return GestureDetector(
                   onTap: () {
                     _showFullscreenPlayer(context);
