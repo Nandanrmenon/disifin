@@ -14,30 +14,48 @@ class TrackListScreen extends StatefulWidget {
 }
 
 class _TrackListScreenState extends State<TrackListScreen> {
-  List<dynamic> _tracks = [];
+  final List<dynamic> _tracks = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   String? _errorMessage;
   String? _serverUrl;
   String? _accessToken;
   bool _isGridView = false; // Add a state variable to toggle between views
+  int _currentPage = 1;
+  final int _pageSize = 20;
+  final ScrollController _scrollController = ScrollController();
+  String _sortOption = 'A-Z'; // Add a state variable for sorting
 
   @override
   void initState() {
     super.initState();
-    _loadViewPreference();
+    _loadPreferences();
     _fetchTracks();
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _loadViewPreference() async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isGridView = prefs.getBool('isGridView') ?? false;
+      _sortOption = prefs.getString('sortOption') ?? 'A-Z';
     });
   }
 
   Future<void> _saveViewPreference(bool isGridView) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isGridView', isGridView);
+  }
+
+  Future<void> _saveSortPreference(String sortOption) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('sortOption', sortOption);
   }
 
   Future<void> _fetchTracks() async {
@@ -64,7 +82,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('$url/Items?IncludeItemTypes=Audio&Recursive=true'),
+        Uri.parse(
+            '$url/Items?IncludeItemTypes=Audio&Recursive=true&StartIndex=${(_currentPage - 1) * _pageSize}&Limit=$_pageSize&SortBy=${_sortOption == 'A-Z' ? 'Name' : 'DateCreated'}&SortOrder=${_sortOption == 'Date Added (Descending)' ? 'Descending' : 'Ascending'}'),
         headers: {
           'Content-Type': 'application/json',
           'X-Emby-Token': accessToken,
@@ -78,7 +97,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
         final data = jsonDecode(response.body);
         if (mounted) {
           setState(() {
-            _tracks = data['Items'];
+            _tracks.addAll(data['Items']);
+            _currentPage++;
           });
         }
       } else {
@@ -98,8 +118,20 @@ class _TrackListScreenState extends State<TrackListScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isLoadingMore = false;
         });
       }
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        !_isLoadingMore) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+      _fetchTracks();
     }
   }
 
@@ -132,6 +164,74 @@ class _TrackListScreenState extends State<TrackListScreen> {
         urls, trackNames, trackImageUrls, trackArtists);
   }
 
+  void _showSortOptions(BuildContext context) {
+    Navigator.of(context).push(
+      ModalBottomSheetRoute(
+        showDragHandle: true,
+        builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 56),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  title: const Text('A-Z'),
+                  selected: _sortOption == 'A-Z',
+                  onTap: () {
+                    setState(() {
+                      _sortOption = 'A-Z';
+                      _tracks.clear();
+                      _currentPage = 1;
+                      _fetchTracks();
+                      _saveSortPreference(_sortOption);
+                    });
+                    Navigator.pop(context);
+                  },
+                  trailing: _sortOption == 'A-Z' ? Icon(Symbols.check) : null,
+                ),
+                ListTile(
+                  title: const Text('Date Added (Ascending)'),
+                  selected: _sortOption == 'Date Added (Ascending)',
+                  onTap: () {
+                    setState(() {
+                      _sortOption = 'Date Added (Ascending)';
+                      _tracks.clear();
+                      _currentPage = 1;
+                      _fetchTracks();
+                      _saveSortPreference(_sortOption);
+                    });
+                    Navigator.pop(context);
+                  },
+                  trailing: _sortOption == 'Date Added (Ascending)'
+                      ? Icon(Symbols.check)
+                      : null,
+                ),
+                ListTile(
+                  title: const Text('Date Added (Descending)'),
+                  selected: _sortOption == 'Date Added (Descending)',
+                  onTap: () {
+                    setState(() {
+                      _sortOption = 'Date Added (Descending)';
+                      _tracks.clear();
+                      _currentPage = 1;
+                      _fetchTracks();
+                      _saveSortPreference(_sortOption);
+                    });
+                    Navigator.pop(context);
+                  },
+                  trailing: _sortOption == 'Date Added (Descending)'
+                      ? Icon(Symbols.check)
+                      : null,
+                ),
+              ],
+            ),
+          );
+        },
+        isScrollControlled: false,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,6 +256,10 @@ class _TrackListScreenState extends State<TrackListScreen> {
                 ),
                 Spacer(),
                 IconButton(
+                  icon: Icon(Icons.sort),
+                  onPressed: () => _showSortOptions(context),
+                ),
+                IconButton(
                   icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
                   onPressed: () {
                     setState(() {
@@ -168,120 +272,154 @@ class _TrackListScreenState extends State<TrackListScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
+            child: _isLoading && _tracks.isEmpty
                 ? const Center(
-                    child: CircularProgressIndicator(
-                    year2023: false,
-                  ))
+                    child: CircularProgressIndicator(),
+                  )
                 : _errorMessage != null
                     ? Center(
                         child: Text(_errorMessage!,
                             style: const TextStyle(color: Colors.red)))
-                    : _isGridView
-                        ? GridView.builder(
-                            padding: EdgeInsets.only(bottom: 200),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 2 / 2.5,
-                            ),
-                            itemCount: _tracks.length,
-                            itemBuilder: (context, index) {
-                              final track = _tracks[index];
-                              final imageUrl = track['ImageTags'] != null &&
-                                      track['ImageTags']['Primary'] != null &&
-                                      _serverUrl != null
-                                  ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
-                                  : null;
-                              final audioUrl =
-                                  '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(10),
-                                onTap: () {
-                                  _playTrack(index);
-                                },
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                      child: imageUrl != null
-                                          ? Card(
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                child: Image.network(imageUrl,
-                                                    fit: BoxFit.cover),
-                                              ),
-                                            )
-                                          : Card(
-                                              child: const Icon(
-                                                  Symbols.music_note,
-                                                  size: 50),
-                                            ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Text(
-                                            track['Name'] ?? 'Unknown',
-                                            maxLines: 1,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(
-                                            track['Album'] ?? 'Unknown',
-                                            maxLines: 1,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                    : NotificationListener<ScrollNotification>(
+                        onNotification: (ScrollNotification scrollInfo) {
+                          if (scrollInfo.metrics.pixels ==
+                                  scrollInfo.metrics.maxScrollExtent &&
+                              !_isLoadingMore) {
+                            setState(() {
+                              _isLoadingMore = true;
+                            });
+                            _fetchTracks();
+                          }
+                          return false;
+                        },
+                        child: _isGridView
+                            ? GridView.builder(
+                                controller: _scrollController,
+                                padding: EdgeInsets.only(bottom: 200),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 2 / 2.5,
                                 ),
-                              );
-                            },
-                          )
-                        : ListView.builder(
-                            itemCount: _tracks.length,
-                            padding: EdgeInsets.only(bottom: 200),
-                            itemBuilder: (context, index) {
-                              final track = _tracks[index];
-                              final imageUrl = track['ImageTags'] != null &&
-                                      track['ImageTags']['Primary'] != null &&
-                                      _serverUrl != null
-                                  ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
-                                  : null;
-                              final audioUrl =
-                                  '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
-                              return ListTile(
-                                leading: imageUrl != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(25),
-                                        child: SizedBox(
-                                          width: 50,
-                                          height: 50,
-                                          child: Image.network(imageUrl,
-                                              fit: BoxFit.cover),
+                                itemCount: _tracks.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == _tracks.length) {
+                                    return _isLoadingMore
+                                        ? Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                        : SizedBox.shrink();
+                                  }
+                                  final track = _tracks[index];
+                                  final imageUrl = track['ImageTags'] != null &&
+                                          track['ImageTags']['Primary'] !=
+                                              null &&
+                                          _serverUrl != null
+                                      ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+                                      : null;
+                                  final audioUrl =
+                                      '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(10),
+                                    onTap: () {
+                                      _playTrack(index);
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                          child: imageUrl != null
+                                              ? Card(
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child: Image.network(
+                                                        imageUrl,
+                                                        fit: BoxFit.cover),
+                                                  ),
+                                                )
+                                              : Card(
+                                                  child: const Icon(
+                                                      Symbols.music_note,
+                                                      size: 50),
+                                                ),
                                         ),
-                                      )
-                                    : const CircleAvatar(
-                                        radius: 25,
-                                        child: Icon(Symbols.music_note),
-                                      ),
-                                title: Text(
-                                  track['Name'] ?? 'Unknown',
-                                  maxLines: 1,
-                                ),
-                                subtitle: Text(track['Album'] ?? 'Unknown'),
-                                onTap: () {
-                                  _playTrack(index);
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              Text(
+                                                track['Name'] ?? 'Unknown',
+                                                maxLines: 1,
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              Text(
+                                                track['Album'] ?? 'Unknown',
+                                                maxLines: 1,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
-                              );
-                            },
-                          ),
+                              )
+                            : ListView.builder(
+                                controller: _scrollController,
+                                itemCount: _tracks.length + 1,
+                                padding: EdgeInsets.only(bottom: 200),
+                                itemBuilder: (context, index) {
+                                  if (index == _tracks.length) {
+                                    return _isLoadingMore
+                                        ? Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                        : SizedBox.shrink();
+                                  }
+                                  final track = _tracks[index];
+                                  final imageUrl = track['ImageTags'] != null &&
+                                          track['ImageTags']['Primary'] !=
+                                              null &&
+                                          _serverUrl != null
+                                      ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+                                      : null;
+                                  final audioUrl =
+                                      '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+                                  return ListTile(
+                                    leading: imageUrl != null
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(25),
+                                            child: SizedBox(
+                                              width: 50,
+                                              height: 50,
+                                              child: Image.network(imageUrl,
+                                                  fit: BoxFit.cover),
+                                            ),
+                                          )
+                                        : const CircleAvatar(
+                                            radius: 25,
+                                            child: Icon(Symbols.music_note),
+                                          ),
+                                    title: Text(
+                                      track['Name'] ?? 'Unknown',
+                                      maxLines: 1,
+                                    ),
+                                    subtitle: Text(track['Album'] ?? 'Unknown'),
+                                    onTap: () {
+                                      _playTrack(index);
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
           ),
         ],
       ),
