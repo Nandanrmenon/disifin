@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -90,9 +91,9 @@ class AudioPlayerService {
       _addToHistory(TrackInfo(
           name: trackName, imageUrl: trackImageUrl, artist: trackArtist));
       _savePlayerState();
-      print('Added to history: $trackName'); // Debug print
+      debugPrint('Added to history: $trackName'); // Debug print
     } catch (e) {
-      print('Error playing audio: $e');
+      debugPrint('Error playing audio: $e');
     }
   }
 
@@ -116,16 +117,16 @@ class AudioPlayerService {
       await _audioPlayer.setAudioSource(playlist);
       currentTrackName = trackNames[0];
       currentTrackImageUrl = trackImageUrls[0];
-      print('play');
+      debugPrint('play');
       await _audioPlayer.play();
       _addToHistory(TrackInfo(
           name: trackNames[0],
           imageUrl: trackImageUrls[0],
           artist: trackArtists[0]));
 
-      print('Added to history: ${trackNames[0]}'); // Debug print
+      debugPrint('Added to history: ${trackNames[0]}'); // Debug print
     } catch (e) {
-      print('Error playing audio queue: $e');
+      debugPrint('Error playing audio queue: $e');
     }
   }
 
@@ -134,7 +135,7 @@ class AudioPlayerService {
       await _audioPlayer.play();
       _savePlayerState();
     } catch (e) {
-      print('Error resuming audio: $e');
+      debugPrint('Error resuming audio: $e');
     }
   }
 
@@ -143,7 +144,7 @@ class AudioPlayerService {
       await _audioPlayer.pause();
       _savePlayerState();
     } catch (e) {
-      print('Error pausing audio: $e');
+      debugPrint('Error pausing audio: $e');
     }
   }
 
@@ -152,7 +153,7 @@ class AudioPlayerService {
       await _audioPlayer.stop();
       _savePlayerState();
     } catch (e) {
-      print('Error stopping audio: $e');
+      debugPrint('Error stopping audio: $e');
     }
   }
 
@@ -160,7 +161,7 @@ class AudioPlayerService {
     try {
       await _audioPlayer.setAudioSource(AudioSource.uri(Uri.parse(url)));
     } catch (e) {
-      print('Error preloading audio: $e');
+      debugPrint('Error preloading audio: $e');
     }
   }
 
@@ -179,7 +180,7 @@ class AudioPlayerService {
         ));
       }
     } catch (e) {
-      print('Error skipping to next track: $e');
+      debugPrint('Error skipping to next track: $e');
     }
   }
 
@@ -198,7 +199,7 @@ class AudioPlayerService {
         ));
       }
     } catch (e) {
-      print('Error skipping to previous track: $e');
+      debugPrint('Error skipping to previous track: $e');
     }
   }
 
@@ -250,8 +251,8 @@ class AudioPlayerService {
         }),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -263,10 +264,10 @@ class AudioPlayerService {
         await prefs.setString('url', url);
         await prefs.setString('username', username);
       } else {
-        print('Authentication failed: ${response.statusCode}');
+        debugPrint('Authentication failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error during authentication: $e');
+      debugPrint('Error during authentication: $e');
     }
   }
 
@@ -314,7 +315,7 @@ class AudioPlayerService {
       _history.removeLast();
     }
     _saveHistory();
-    print(
+    debugPrint(
         'Current history: ${_history.map((track) => track.name).toList()}'); // Debug print
   }
 

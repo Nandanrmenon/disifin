@@ -10,7 +10,7 @@ class TrackListScreen extends StatefulWidget {
   const TrackListScreen({super.key});
 
   @override
-  _TrackListScreenState createState() => _TrackListScreenState();
+  State<TrackListScreen> createState() => _TrackListScreenState();
 }
 
 class _TrackListScreenState extends State<TrackListScreen> {
@@ -71,8 +71,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

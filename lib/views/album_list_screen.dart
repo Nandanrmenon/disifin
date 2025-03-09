@@ -10,7 +10,7 @@ class AlbumListScreen extends StatefulWidget {
   const AlbumListScreen({super.key});
 
   @override
-  _AlbumListScreenState createState() => _AlbumListScreenState();
+  State<AlbumListScreen> createState() => _AlbumListScreenState();
 }
 
 class _AlbumListScreenState extends State<AlbumListScreen> {
@@ -69,8 +69,8 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -156,7 +156,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                       _serverUrl != null
                                   ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
                                   : null;
-                              print(
+                              debugPrint(
                                   'Album: ${album['Name']}, Image URL: $imageUrl'); // Debug print
                               return InkWell(
                                 borderRadius: BorderRadius.circular(10),
@@ -167,7 +167,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                       builder: (context) => AlbumSongsScreen(
                                         albumId: album['Id'],
                                         albumName: album['Name'] ?? 'Unknown',
-                                        imageUrl: imageUrl,
+                                        imageUrl: imageUrl ?? '',
                                       ),
                                     ),
                                   );
@@ -240,7 +240,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                       _serverUrl != null
                                   ? '$_serverUrl/Items/${album['Id']}/Images/Primary?tag=${album['ImageTags']['Primary']}'
                                   : null;
-                              print(
+                              debugPrint(
                                   'Album: ${album['Name']}, Image URL: $imageUrl'); // Debug print
                               return Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -284,7 +284,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
                                         builder: (context) => AlbumSongsScreen(
                                           albumId: album['Id'],
                                           albumName: album['Name'] ?? 'Unknown',
-                                          imageUrl: imageUrl,
+                                          imageUrl: imageUrl ?? '',
                                         ),
                                       ),
                                     );

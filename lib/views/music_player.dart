@@ -6,7 +6,7 @@ class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
 
   @override
-  _MusicPlayerState createState() => _MusicPlayerState();
+  State<MusicPlayer> createState() => _MusicPlayerState();
 }
 
 class _MusicPlayerState extends State<MusicPlayer> {
@@ -34,11 +34,11 @@ class _MusicPlayerState extends State<MusicPlayer> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
+            debugPrint('Error: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             final music = snapshot.data!;
-            print('Music fetched successfully: ${music.length} items');
+            debugPrint('Music fetched successfully: ${music.length} items');
             return ListView.builder(
               itemCount: music.length,
               itemBuilder: (context, index) {

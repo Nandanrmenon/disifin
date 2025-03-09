@@ -9,7 +9,7 @@ class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -31,14 +31,14 @@ class _SearchPageState extends State<SearchPage> {
 
     if (accessToken == null || url == null) {
       // Handle error: access token or server URL not found
-      print('Error: Access token or server URL not found');
+      debugPrint('Error: Access token or server URL not found');
       setState(() {
         _isLoading = false; // Set loading to false
       });
       return;
     }
 
-    print('Performing search with query: $query');
+    debugPrint('Performing search with query: $query');
     final response = await http.get(
       Uri.parse(
           '$url/Items?searchTerm=$query&IncludeItemTypes=Audio,MusicAlbum,MusicArtist&Recursive=true'),
@@ -49,7 +49,7 @@ class _SearchPageState extends State<SearchPage> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print('Search response data: $data');
+      debugPrint('Search response data: $data');
       setState(() {
         _songResults = (data['Items'] as List)
             .where((item) => item['Type'] == 'Audio')
@@ -93,7 +93,7 @@ class _SearchPageState extends State<SearchPage> {
       });
     } else {
       // Handle error
-      print('Error: ${response.statusCode} - ${response.body}');
+      debugPrint('Error: ${response.statusCode} - ${response.body}');
       setState(() {
         _songResults = [];
         _albumResults = [];

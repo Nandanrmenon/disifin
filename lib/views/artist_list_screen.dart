@@ -9,7 +9,7 @@ class ArtistListScreen extends StatefulWidget {
   const ArtistListScreen({super.key});
 
   @override
-  _ArtistListScreenState createState() => _ArtistListScreenState();
+  State<ArtistListScreen> createState() => _ArtistListScreenState();
 }
 
 class _ArtistListScreenState extends State<ArtistListScreen> {
@@ -65,8 +65,8 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

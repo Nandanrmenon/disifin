@@ -11,7 +11,7 @@ class FullscreenAudioPlayer extends StatefulWidget {
   const FullscreenAudioPlayer({super.key});
 
   @override
-  _FullscreenAudioPlayerState createState() => _FullscreenAudioPlayerState();
+  State<FullscreenAudioPlayer> createState() => _FullscreenAudioPlayerState();
 }
 
 class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {

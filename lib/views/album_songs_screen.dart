@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AlbumSongsScreen extends StatefulWidget {
   final String albumId;
   final String albumName;
-  final imageUrl;
+  final String imageUrl;
 
   const AlbumSongsScreen(
       {required this.albumId,
@@ -17,7 +17,7 @@ class AlbumSongsScreen extends StatefulWidget {
       super.key});
 
   @override
-  _AlbumSongsScreenState createState() => _AlbumSongsScreenState();
+  State<AlbumSongsScreen> createState() => _AlbumSongsScreenState();
 }
 
 class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
@@ -119,9 +119,9 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+                  if (widget.imageUrl.isNotEmpty)
                     Image.network(
-                      widget.imageUrl!,
+                      widget.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(

@@ -7,7 +7,7 @@ class MediaListScreen extends StatefulWidget {
   const MediaListScreen({super.key});
 
   @override
-  _MediaListScreenState createState() => _MediaListScreenState();
+  State<MediaListScreen> createState() => _MediaListScreenState();
 }
 
 class _MediaListScreenState extends State<MediaListScreen> {
