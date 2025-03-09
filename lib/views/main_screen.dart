@@ -53,6 +53,12 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _checkToken();
+    _loadPlayerState();
+  }
+
+  Future<void> _loadPlayerState() async {
+    await AudioPlayerService.loadPlayerState();
+    setState(() {});
   }
 
   @override

@@ -36,6 +36,41 @@ class AudioPlayerService {
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
 
+  static Future<void> _savePlayerState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentTrack = _audioPlayer.currentIndex != null
+        ? _audioPlayer.sequence![_audioPlayer.currentIndex!].tag as MediaItem
+        : null;
+    if (currentTrack != null) {
+      await prefs.setString('currentTrackUrl', currentTrack.id);
+      await prefs.setString('currentTrackName', currentTrack.title);
+      await prefs.setString(
+          'currentTrackImageUrl', currentTrack.artUri?.toString() ?? '');
+      await prefs.setString('currentTrackArtist', currentTrack.artist ?? '');
+      await prefs.setInt(
+          'currentTrackPosition', _audioPlayer.position.inMilliseconds);
+    }
+  }
+
+  static Future<void> loadPlayerState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('currentTrackUrl');
+    final name = prefs.getString('currentTrackName');
+    final imageUrl = prefs.getString('currentTrackImageUrl');
+    final artist = prefs.getString('currentTrackArtist');
+    final position = prefs.getInt('currentTrackPosition');
+
+    if (url != null &&
+        name != null &&
+        imageUrl != null &&
+        artist != null &&
+        position != null) {
+      await play(url, name, imageUrl, artist);
+      await seek(Duration(milliseconds: position));
+      await pause(); // Ensure the player is paused initially
+    }
+  }
+
   static Future<void> play(String url, String trackName, String trackImageUrl,
       String trackArtist) async {
     try {
@@ -54,6 +89,7 @@ class AudioPlayerService {
       await _audioPlayer.play();
       _addToHistory(TrackInfo(
           name: trackName, imageUrl: trackImageUrl, artist: trackArtist));
+      _savePlayerState();
       print('Added to history: $trackName'); // Debug print
     } catch (e) {
       print('Error playing audio: $e');
@@ -96,6 +132,7 @@ class AudioPlayerService {
   static Future<void> resume() async {
     try {
       await _audioPlayer.play();
+      _savePlayerState();
     } catch (e) {
       print('Error resuming audio: $e');
     }
@@ -104,6 +141,7 @@ class AudioPlayerService {
   static Future<void> pause() async {
     try {
       await _audioPlayer.pause();
+      _savePlayerState();
     } catch (e) {
       print('Error pausing audio: $e');
     }
@@ -112,6 +150,7 @@ class AudioPlayerService {
   static Future<void> stop() async {
     try {
       await _audioPlayer.stop();
+      _savePlayerState();
     } catch (e) {
       print('Error stopping audio: $e');
     }
@@ -172,6 +211,7 @@ class AudioPlayerService {
   static Duration? get duration => _audioPlayer.duration;
   static Future<void> seek(Duration position) async {
     await _audioPlayer.seek(position);
+    _savePlayerState();
   }
 
   static List<String> get currentQueue =>
@@ -266,6 +306,9 @@ class AudioPlayerService {
   }
 
   static void _addToHistory(TrackInfo trackInfo) {
+    // Remove the track if it already exists in the history
+    _history.removeWhere((track) => track.name == trackInfo.name);
+    // Insert the track at the top of the history
     _history.insert(0, trackInfo);
     if (_history.length > 30) {
       _history.removeLast();
@@ -281,5 +324,10 @@ class AudioPlayerService {
     final random = Random();
     final shuffledTracks = List<TrackInfo>.from(_history)..shuffle(random);
     return shuffledTracks.take(5).toList();
+  }
+
+  static Future<void> clearHistory() async {
+    _history.clear();
+    await _saveHistory();
   }
 }
