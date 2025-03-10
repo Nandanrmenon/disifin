@@ -25,6 +25,8 @@ class _TrackListScreenState extends State<TrackListScreen> {
   final int _pageSize = 20;
   final ScrollController _scrollController = ScrollController();
   String _sortOption = 'A-Z'; // Add a state variable for sorting
+  bool _isAppBarVisible = true;
+  double _lastScrollOffset = 0.0;
 
   @override
   void initState() {
@@ -133,6 +135,22 @@ class _TrackListScreenState extends State<TrackListScreen> {
       });
       _fetchTracks();
     }
+
+    final currentScrollOffset = _scrollController.position.pixels;
+    if (currentScrollOffset > _lastScrollOffset + 15) {
+      if (_isAppBarVisible) {
+        setState(() {
+          _isAppBarVisible = false;
+        });
+      }
+    } else if (currentScrollOffset < _lastScrollOffset - 15) {
+      if (!_isAppBarVisible) {
+        setState(() {
+          _isAppBarVisible = true;
+        });
+      }
+    }
+    _lastScrollOffset = currentScrollOffset;
   }
 
   void _playAllTracks() {
@@ -237,39 +255,46 @@ class _TrackListScreenState extends State<TrackListScreen> {
     return Scaffold(
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.sort_by_alpha),
-                  onPressed: () => _showSortOptions(context),
-                ),
-                IconButton(
-                  icon: Icon(_isGridView ? Symbols.list : Symbols.grid_view),
-                  onPressed: () {
-                    setState(() {
-                      _isGridView = !_isGridView;
-                      _saveViewPreference(_isGridView);
-                    });
-                  },
-                ),
-                Spacer(),
-                IconButton.outlined(
-                  onPressed: () {},
-                  isSelected: false,
-                  icon: Icon(Symbols.shuffle),
-                ),
-                SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _playAllTracks,
-                  icon: Icon(
-                    Symbols.play_arrow_rounded,
-                  ),
-                  label: const Text('Play All'),
-                ),
-              ],
-            ),
+          AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            height: _isAppBarVisible ? kToolbarHeight : 0.0,
+            child: _isAppBarVisible
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _playAllTracks,
+                          icon: Icon(
+                            Symbols.play_arrow_rounded,
+                          ),
+                          label: const Text('Play All'),
+                        ),
+                        SizedBox(width: 8),
+                        IconButton.outlined(
+                          onPressed: () {},
+                          isSelected: false,
+                          icon: Icon(Symbols.shuffle),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.sort_by_alpha),
+                          onPressed: () => _showSortOptions(context),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                              _isGridView ? Symbols.list : Symbols.grid_view),
+                          onPressed: () {
+                            setState(() {
+                              _isGridView = !_isGridView;
+                              _saveViewPreference(_isGridView);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                : SizedBox.shrink(),
           ),
           Expanded(
             child: _isLoading && _tracks.isEmpty

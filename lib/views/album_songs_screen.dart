@@ -113,7 +113,11 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
         slivers: [
           SliverAppBar(
             expandedHeight: 200.0,
+            pinned: true,
+            backgroundColor:
+                Theme.of(context).colorScheme.surfaceContainerLowest,
             flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
               title: Text(widget.albumName),
               titlePadding: const EdgeInsets.only(left: 56.0, bottom: 14.0),
               background: Stack(
@@ -168,7 +172,6 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                 ],
               ),
             ),
-            pinned: true,
           ),
           SliverToBoxAdapter(
             child: Padding(

@@ -27,6 +27,7 @@ final ThemeData appTheme = ThemeData(
   appBarTheme: AppBarTheme(
     backgroundColor: Colors.black,
     elevation: 0,
+    centerTitle: false,
     scrolledUnderElevation: 0,
     systemOverlayStyle: SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.black,

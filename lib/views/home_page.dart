@@ -156,7 +156,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               if (AudioPlayerService.history.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
                   child: Row(
