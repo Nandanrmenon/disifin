@@ -15,17 +15,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String? _serverName;
   String? _username;
+  List<TrackInfo> _recentlyAddedSongs = [];
 
   @override
   void initState() {
     super.initState();
     _loadHistory();
+    _loadRecentlyAddedSongs();
     getPrefs();
   }
 
   Future<void> _loadHistory() async {
     await AudioPlayerService.loadHistory();
     setState(() {});
+  }
+
+  Future<void> _loadRecentlyAddedSongs() async {
+    final recentlyAddedSongs = await AudioPlayerService.getRecentlyAddedSongs();
+    setState(() {
+      _recentlyAddedSongs = recentlyAddedSongs.take(5).toList();
+    });
   }
 
   void getPrefs() async {
@@ -105,7 +114,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.max,
             children: [
-              if (!kReleaseMode)
+              if (kReleaseMode)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Card(
@@ -137,21 +146,34 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-              if (AudioPlayerService.history.isEmpty)
-                Center(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 200),
-                      Container(
-                          decoration: BoxDecoration(),
-                          child: Icon(Symbols.music_note, size: 100)),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Start playing some music',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+              if (recommendations.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                  child: Text(
+                    'Recommended for You',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              if (recommendations.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height / 4),
+                    child: CarouselView.weighted(
+                        flexWeights: const <int>[7, 1],
+                        itemSnapping: true,
+                        children: recommendations.map(
+                          (e) {
+                            return HeroLayoutCard(
+                              artist: e.artist!,
+                              name: e.name!,
+                              imgUrl: e.imageUrl!,
+                            );
+                          },
+                        ).toList()),
                   ),
                 ),
               if (AudioPlayerService.history.isNotEmpty)
@@ -237,7 +259,7 @@ class _HomePageState extends State<HomePage> {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .tertiary,
-                                      borderRadius: BorderRadius.circular(5)),
+                                      borderRadius: BorderRadius.circular(10)),
                                   child:
                                       const Icon(Symbols.music_note, size: 50),
                                 ),
@@ -268,26 +290,28 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 8,
               ),
-              if (recommendations.isNotEmpty)
+              if (_recentlyAddedSongs.isNotEmpty)
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                   child: Text(
-                    'Recommended for You',
+                    'Recently Added',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-              if (recommendations.isNotEmpty)
+              if (_recentlyAddedSongs.isNotEmpty)
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                        maxHeight: MediaQuery.sizeOf(context).height / 4),
+                        maxHeight: MediaQuery.sizeOf(context).height / 5),
                     child: CarouselView.weighted(
-                        flexWeights: const <int>[3, 2, 1],
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        flexWeights: const <int>[4, 2, 1],
                         itemSnapping: true,
-                        children: recommendations.map(
+                        children: _recentlyAddedSongs.map(
                           (e) {
                             return HeroLayoutCard(
                               artist: e.artist!,
@@ -297,6 +321,24 @@ class _HomePageState extends State<HomePage> {
                           },
                         ).toList()),
                   ),
+                ),
+              if (AudioPlayerService.history.isEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 48,
+                    ),
+                    Container(
+                        decoration: BoxDecoration(),
+                        child: Icon(Symbols.music_note, size: 100)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Start playing some music',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -361,7 +403,7 @@ class HeroLayoutCard extends StatelessWidget {
             children: <Widget>[
               Text(
                 name,
-                overflow: TextOverflow.clip,
+                overflow: TextOverflow.ellipsis,
                 softWrap: false,
                 style: Theme.of(
                   context,
@@ -370,7 +412,7 @@ class HeroLayoutCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 artist,
-                overflow: TextOverflow.clip,
+                overflow: TextOverflow.ellipsis,
                 softWrap: false,
                 style: Theme.of(
                   context,

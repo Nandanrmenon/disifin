@@ -352,7 +352,7 @@ class AudioPlayerService {
   static List<TrackInfo> getRandomRecommendations() {
     final random = Random();
     final shuffledTracks = List<TrackInfo>.from(_history)..shuffle(random);
-    return shuffledTracks.take(5).toList();
+    return shuffledTracks.take(10).toList();
   }
 
   static Future<void> clearHistory() async {
@@ -395,5 +395,47 @@ class AudioPlayerService {
 
   static Future<void> clearSongHistory() async {
     await DatabaseService.clearSongHistory();
+  }
+
+  static Future<List<TrackInfo>> getRecentlyAddedSongs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url');
+    final accessToken = prefs.getString('accessToken');
+
+    if (url == null || accessToken == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+            // '$url/Items?IncludeItemTypes=Music&SortBy=DateCreated&SortOrder=Descending&Limit=5'),
+            '$url/Items?IncludeItemTypes=Audio&Recursive=true&SortBy=DateCreated&SortOrder=Descending&Limit=5'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Emby-Token': accessToken,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final items = data['Items'] as List<dynamic>;
+        return items.map((item) {
+          return TrackInfo(
+            name: item['Name'],
+            imageUrl: item['ImageTags'] != null &&
+                    item['ImageTags']['Primary'] != null
+                ? '$url/Items/${item['Id']}/Images/Primary?tag=${item['ImageTags']['Primary']}'
+                : null,
+            artist: item['AlbumArtist'],
+          );
+        }).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching recently added songs: $e');
+      return [];
+    }
   }
 }

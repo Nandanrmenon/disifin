@@ -53,7 +53,16 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       fit: BoxFit.cover,
                     ),
                   )
-                : Container();
+                : Container(
+                    decoration: BoxDecoration(
+                      gradient: SweepGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.surfaceBright,
+                          Theme.of(context).colorScheme.surface,
+                        ],
+                      ),
+                    ),
+                  );
           },
         ),
         BackdropFilter(
@@ -112,10 +121,9 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                             ),
                           )
                         else
-                          Container(
+                          SizedBox(
                             width: MediaQuery.of(context).size.width * 0.9,
                             height: MediaQuery.of(context).size.width * 0.9,
-                            color: Theme.of(context).canvasColor,
                             child: const Card(
                               child: Icon(Symbols.music_note, size: 200),
                             ),

@@ -109,7 +109,7 @@ class _MainScreenState extends State<MainScreen> {
                   onTap: () {
                     _showFullscreenPlayer(context);
                   },
-                  child: Card(
+                  child: Card.outlined(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 12.0, horizontal: 12),
