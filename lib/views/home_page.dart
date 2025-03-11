@@ -241,18 +241,20 @@ class _HomePageState extends State<HomePage> {
                                   child:
                                       const Icon(Symbols.music_note, size: 50),
                                 ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  (trackInfo.name ?? 'Unknown Track').length >
-                                          12
-                                      ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 12)}...'
-                                      : trackInfo.name ?? 'Unknown Track',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    // fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    (trackInfo.name ?? 'Unknown Track').length >
+                                            10
+                                        ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 10)}...'
+                                        : trackInfo.name ?? 'Unknown Track',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      // fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -283,9 +285,7 @@ class _HomePageState extends State<HomePage> {
                     constraints: BoxConstraints(
                         maxHeight: MediaQuery.sizeOf(context).height / 4),
                     child: CarouselView.weighted(
-                        flexWeights: const <int>[3, 1, 1],
-                        // flexWeights: const <int>[2],
-                        // itemExtent: double.infinity,
+                        flexWeights: const <int>[3, 2, 1],
                         itemSnapping: true,
                         children: recommendations.map(
                           (e) {

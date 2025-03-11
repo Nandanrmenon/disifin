@@ -12,6 +12,7 @@ import 'package:disifin/views/search_page.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -29,7 +30,14 @@ Future<void> main() async {
   final bool isLoggedIn = prefs.getString('accessToken') != null;
   globals.baseUrl = prefs.getString('serverName') ?? '';
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  final themeNotifier = ThemeNotifier(await getAppTheme());
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => themeNotifier,
+      child: MyApp(isLoggedIn: isLoggedIn),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -37,28 +45,30 @@ class MyApp extends StatelessWidget {
 
   const MyApp({super.key, required this.isLoggedIn});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Disifin',
-      theme: appTheme,
-      themeMode: ThemeMode.dark,
-      debugShowCheckedModeBanner: false,
-      initialRoute: isLoggedIn
-          ? '/main'
-          : '/login', // Set initial route based on login status
-      routes: {
-        '/': (context) => const MainScreen(), // Change this to MainScreen
-        '/music': (context) => const MusicPlayer(),
-        '/login': (context) => const LoginScreen(),
-        '/tracks': (context) => const TrackListScreen(),
-        '/albums': (context) => const AlbumListScreen(),
-        '/artists': (context) => const ArtistListScreen(),
-        '/media': (context) => const MediaListScreen(),
-        '/search': (context) => const SearchPage(),
-        '/main': (context) => const MainScreen(), // Add this route
-        '/fullscreen_audio_player': (context) => const FullscreenAudioPlayer(),
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return MaterialApp(
+          title: 'Disifin',
+          theme: themeNotifier.themeData,
+          themeMode: ThemeMode.dark,
+          debugShowCheckedModeBanner: false,
+          initialRoute: isLoggedIn ? '/main' : '/login',
+          routes: {
+            '/': (context) => const MainScreen(),
+            '/music': (context) => const MusicPlayer(),
+            '/login': (context) => const LoginScreen(),
+            '/tracks': (context) => const TrackListScreen(),
+            '/albums': (context) => const AlbumListScreen(),
+            '/artists': (context) => const ArtistListScreen(),
+            '/media': (context) => const MediaListScreen(),
+            '/search': (context) => const SearchPage(),
+            '/main': (context) => const MainScreen(),
+            '/fullscreen_audio_player': (context) =>
+                const FullscreenAudioPlayer(),
+          },
+        );
       },
     );
   }
