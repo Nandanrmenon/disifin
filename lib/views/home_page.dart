@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+                Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.2),
                 Color.fromARGB(0, 0, 0, 0),
               ],
               begin: Alignment(0.0, -0.5),
@@ -277,62 +277,25 @@ class _HomePageState extends State<HomePage> {
                 ),
               if (recommendations.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: recommendations.length,
-                      itemBuilder: (context, index) {
-                        final trackInfo = recommendations[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (trackInfo.imageUrl != null &&
-                                  trackInfo.imageUrl!.isNotEmpty)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    trackInfo.imageUrl!,
-                                    width: 150,
-                                    height: 150,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              else
-                                Container(
-                                  width: 150,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                      borderRadius: BorderRadius.circular(10)),
-                                  child:
-                                      const Icon(Symbols.music_note, size: 50),
-                                ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  (trackInfo.name ?? 'Unknown Track').length >
-                                          16
-                                      ? '${(trackInfo.name ?? 'Unknown Track').substring(0, 16)}...'
-                                      : trackInfo.name ?? 'Unknown Track',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height / 4),
+                    child: CarouselView.weighted(
+                        flexWeights: const <int>[3, 1, 1],
+                        // flexWeights: const <int>[2],
+                        // itemExtent: double.infinity,
+                        itemSnapping: true,
+                        children: recommendations.map(
+                          (e) {
+                            return HeroLayoutCard(
+                              artist: e.artist!,
+                              name: e.name!,
+                              imgUrl: e.imageUrl!,
+                            );
+                          },
+                        ).toList()),
                   ),
                 ),
             ],
@@ -351,6 +314,73 @@ class _HomePageState extends State<HomePage> {
     } else {
       return 'Good Evening';
     }
+  }
+}
+
+class HeroLayoutCard extends StatelessWidget {
+  final String artist;
+  final String name;
+  final String? imgUrl;
+
+  const HeroLayoutCard(
+      {super.key, required this.artist, this.imgUrl, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = MediaQuery.sizeOf(context).width;
+    return Stack(
+      alignment: AlignmentDirectional.bottomStart,
+      children: <Widget>[
+        ClipRect(
+          child: OverflowBox(
+            maxWidth: width * 7 / 8,
+            minWidth: width * 7 / 8,
+            child: Image(
+              fit: BoxFit.cover,
+              image: NetworkImage(imgUrl!),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(0, 0, 0, 0),
+                Color.fromARGB(154, 0, 0, 0),
+              ],
+              begin: Alignment(0.0, -0.5),
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                name,
+                overflow: TextOverflow.clip,
+                softWrap: false,
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                artist,
+                overflow: TextOverflow.clip,
+                softWrap: false,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 

@@ -335,7 +335,8 @@ class AudioPlayerService {
 
   static void _addToHistory(TrackInfo trackInfo) {
     // Remove the track if it already exists in the history
-    _history.removeWhere((track) => track.name == trackInfo.name);
+    _history.removeWhere((track) =>
+        track.name == trackInfo.name && track.artist == trackInfo.artist);
     // Insert the track at the top of the history
     _history.insert(0, trackInfo);
     if (_history.length > 30) {
