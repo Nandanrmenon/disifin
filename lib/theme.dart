@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeNotifier extends ChangeNotifier {
@@ -77,31 +76,44 @@ Future<ThemeData> getAppTheme() async {
       elevation: 0,
       centerTitle: false,
       scrolledUnderElevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle(
-        systemNavigationBarColor: amoledBackground
-            ? Colors.black
-            : const Color.fromRGBO(14, 14, 14, 1),
-        systemNavigationBarIconBrightness: Brightness.light,
-        systemNavigationBarDividerColor: Colors.transparent,
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
+      // systemOverlayStyle: SystemUiOverlayStyle(
+      //   systemNavigationBarColor: amoledBackground
+      //       ? Colors.black
+      //       : const Color.fromRGBO(14, 14, 14, 1),
+      //   systemNavigationBarIconBrightness: Brightness.light,
+      //   systemNavigationBarDividerColor: Colors.transparent,
+      //   statusBarColor: Colors.transparent,
+      //   statusBarIconBrightness: Brightness.light,
+      //   statusBarBrightness: Brightness.dark,
+      // ),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      // elevation: 2.0,
+      backgroundColor: const Color.fromRGBO(14, 14, 14, 1),
+      // labelType: NavigationRailLabelType.all,
     ),
     chipTheme: ChipThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(25),
       ),
     ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: amoledBackground
+          ? Colors.black
+          : const Color.fromARGB(255, 20, 20, 20),
+      indicatorShape: BeveledRectangleBorder(),
+      indicatorColor: Colors.transparent,
+      iconTheme: WidgetStatePropertyAll(IconThemeData()),
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+    ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      selectedIconTheme: IconThemeData(size: 26, color: Colors.white),
-      unselectedIconTheme: IconThemeData(size: 26),
       selectedItemColor: Colors.white,
       selectedLabelStyle:
           const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      unselectedLabelStyle: const TextStyle(fontSize: 12),
-      backgroundColor: Colors.transparent,
       enableFeedback: true,
+      backgroundColor: amoledBackground
+          ? Colors.black
+          : const Color.fromARGB(255, 20, 20, 20),
     ),
     listTileTheme: ListTileThemeData(
       shape: RoundedRectangleBorder(

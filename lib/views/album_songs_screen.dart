@@ -117,9 +117,9 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
             backgroundColor:
                 Theme.of(context).colorScheme.surfaceContainerLowest,
             flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
+              centerTitle: true,
               title: Text(widget.albumName),
-              titlePadding: const EdgeInsets.only(left: 56.0, bottom: 14.0),
+              collapseMode: CollapseMode.pin,
               background: Stack(
                 fit: StackFit.expand,
                 children: [

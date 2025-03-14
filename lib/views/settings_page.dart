@@ -37,6 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -74,7 +75,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.tertiaryFixedDim,
+              backgroundColor: Theme.of(context).colorScheme.secondaryFixedDim,
+              foregroundColor: Theme.of(context).colorScheme.onSecondaryFixed,
               child: const Icon(Symbols.style),
             ),
             title: const Text('Customize'),

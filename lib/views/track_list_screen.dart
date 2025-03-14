@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:disifin/services/audio_player_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
@@ -184,269 +186,298 @@ class _TrackListScreenState extends State<TrackListScreen> {
 
   void _showSortOptions(BuildContext context) {
     Navigator.of(context).push(
-      ModalBottomSheetRoute(
-        showDragHandle: true,
+      CupertinoModalPopupRoute(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         builder: (context) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: 56),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  title: const Text('A-Z'),
-                  selected: _sortOption == 'A-Z',
-                  onTap: () {
-                    setState(() {
-                      _sortOption = 'A-Z';
-                      _tracks.clear();
-                      _currentPage = 1;
-                      _fetchTracks();
-                      _saveSortPreference(_sortOption);
-                    });
-                    Navigator.pop(context);
-                  },
-                  trailing: _sortOption == 'A-Z' ? Icon(Symbols.check) : null,
+          return SafeArea(
+            bottom: true,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Material(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
+                      title: const Text('A-Z'),
+                      selected: _sortOption == 'A-Z',
+                      onTap: () {
+                        setState(() {
+                          _sortOption = 'A-Z';
+                          _tracks.clear();
+                          _currentPage = 1;
+                          _fetchTracks();
+                          _saveSortPreference(_sortOption);
+                        });
+                        Navigator.pop(context);
+                      },
+                      trailing: _sortOption == 'A-Z'
+                          ? Icon(Symbols.check_circle_filled, fill: 1)
+                          : null,
+                    ),
+                    ListTile(
+                      title: const Text('Date Added (Ascending)'),
+                      selected: _sortOption == 'Date Added (Ascending)',
+                      onTap: () {
+                        setState(() {
+                          _sortOption = 'Date Added (Ascending)';
+                          _tracks.clear();
+                          _currentPage = 1;
+                          _fetchTracks();
+                          _saveSortPreference(_sortOption);
+                        });
+                        Navigator.pop(context);
+                      },
+                      trailing: _sortOption == 'Date Added (Ascending)'
+                          ? Icon(Symbols.check_circle_filled, fill: 1)
+                          : null,
+                    ),
+                    ListTile(
+                      title: const Text('Date Added (Descending)'),
+                      selected: _sortOption == 'Date Added (Descending)',
+                      onTap: () {
+                        setState(() {
+                          _sortOption = 'Date Added (Descending)';
+                          _tracks.clear();
+                          _currentPage = 1;
+                          _fetchTracks();
+                          _saveSortPreference(_sortOption);
+                        });
+                        Navigator.pop(context);
+                      },
+                      trailing: _sortOption == 'Date Added (Descending)'
+                          ? Icon(Symbols.check_circle_filled, fill: 1)
+                          : null,
+                    ),
+                  ],
                 ),
-                ListTile(
-                  title: const Text('Date Added (Ascending)'),
-                  selected: _sortOption == 'Date Added (Ascending)',
-                  onTap: () {
-                    setState(() {
-                      _sortOption = 'Date Added (Ascending)';
-                      _tracks.clear();
-                      _currentPage = 1;
-                      _fetchTracks();
-                      _saveSortPreference(_sortOption);
-                    });
-                    Navigator.pop(context);
-                  },
-                  trailing: _sortOption == 'Date Added (Ascending)'
-                      ? Icon(Symbols.check)
-                      : null,
-                ),
-                ListTile(
-                  title: const Text('Date Added (Descending)'),
-                  selected: _sortOption == 'Date Added (Descending)',
-                  onTap: () {
-                    setState(() {
-                      _sortOption = 'Date Added (Descending)';
-                      _tracks.clear();
-                      _currentPage = 1;
-                      _fetchTracks();
-                      _saveSortPreference(_sortOption);
-                    });
-                    Navigator.pop(context);
-                  },
-                  trailing: _sortOption == 'Date Added (Descending)'
-                      ? Icon(Symbols.check)
-                      : null,
-                ),
-              ],
+              ),
             ),
           );
         },
-        isScrollControlled: false,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: Column(
-        children: [
-          AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            height: _isAppBarVisible ? kToolbarHeight : 0.0,
-            child: _isAppBarVisible
-                ? Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: _playAllTracks,
-                          icon: Icon(
-                            Symbols.play_arrow_rounded,
-                          ),
-                          label: const Text('Play All'),
-                        ),
-                        SizedBox(width: 8),
-                        IconButton.outlined(
-                          onPressed: () {},
-                          isSelected: false,
-                          icon: Icon(Symbols.shuffle),
-                        ),
-                        Spacer(),
-                        IconButton(
-                          icon: Icon(Icons.sort_by_alpha),
-                          onPressed: () => _showSortOptions(context),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                              _isGridView ? Symbols.list : Symbols.grid_view),
-                          onPressed: () {
-                            setState(() {
-                              _isGridView = !_isGridView;
-                              _saveViewPreference(_isGridView);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  )
-                : SizedBox.shrink(),
-          ),
-          Expanded(
-            child: _isLoading && _tracks.isEmpty
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : _errorMessage != null
-                    ? Center(
-                        child: Text(_errorMessage!,
-                            style: const TextStyle(color: Colors.red)))
-                    : NotificationListener<ScrollNotification>(
-                        onNotification: (ScrollNotification scrollInfo) {
-                          if (scrollInfo.metrics.pixels ==
-                                  scrollInfo.metrics.maxScrollExtent &&
-                              !_isLoadingMore) {
-                            setState(() {
-                              _isLoadingMore = true;
-                            });
-                            _fetchTracks();
-                          }
-                          return false;
-                        },
-                        child: _isGridView
-                            ? GridView.builder(
-                                controller: _scrollController,
-                                padding: EdgeInsets.only(bottom: 200),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 2 / 2.5,
-                                ),
-                                itemCount: _tracks.length + 1,
-                                itemBuilder: (context, index) {
-                                  if (index == _tracks.length) {
-                                    return _isLoadingMore
-                                        ? Center(
-                                            child: CircularProgressIndicator(),
-                                          )
-                                        : SizedBox.shrink();
-                                  }
-                                  final track = _tracks[index];
-                                  final imageUrl = track['ImageTags'] != null &&
-                                          track['ImageTags']['Primary'] !=
-                                              null &&
-                                          _serverUrl != null
-                                      ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
-                                      : null;
-                                  final audioUrl =
-                                      '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(10),
-                                    onTap: () {
-                                      _playTrack(index);
-                                    },
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Expanded(
-                                          child: imageUrl != null
-                                              ? Card(
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child: Image.network(
-                                                        imageUrl,
-                                                        fit: BoxFit.cover),
-                                                  ),
-                                                )
-                                              : Card(
-                                                  child: const Icon(
-                                                      Symbols.music_note,
-                                                      size: 50),
-                                                ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.stretch,
-                                            children: [
-                                              Text(
-                                                track['Name'] ?? 'Unknown',
-                                                maxLines: 1,
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                track['Album'] ?? 'Unknown',
-                                                maxLines: 1,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              )
-                            : ListView.builder(
-                                controller: _scrollController,
-                                itemCount: _tracks.length + 1,
-                                padding: EdgeInsets.only(bottom: 200),
-                                itemBuilder: (context, index) {
-                                  if (index == _tracks.length) {
-                                    return _isLoadingMore
-                                        ? Center(
-                                            child: CircularProgressIndicator(),
-                                          )
-                                        : SizedBox.shrink();
-                                  }
-                                  final track = _tracks[index];
-                                  final imageUrl = track['ImageTags'] != null &&
-                                          track['ImageTags']['Primary'] !=
-                                              null &&
-                                          _serverUrl != null
-                                      ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
-                                      : null;
-                                  final audioUrl =
-                                      '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
-                                  return ListTile(
-                                    leading: imageUrl != null
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                            child: SizedBox(
-                                              width: 50,
-                                              height: 50,
-                                              child: Image.network(imageUrl,
-                                                  fit: BoxFit.cover),
-                                            ),
-                                          )
-                                        : const CircleAvatar(
-                                            radius: 25,
-                                            child: Icon(Symbols.music_note),
-                                          ),
-                                    title: Text(
-                                      track['Name'] ?? 'Unknown',
-                                      maxLines: 1,
-                                    ),
-                                    subtitle: Text(track['Album'] ?? 'Unknown'),
-                                    onTap: () {
-                                      _playTrack(index);
-                                    },
-                                  );
-                                },
+      body: Center(
+        child: ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: screenWidth > 600 ? 600 : screenWidth),
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: _isAppBarVisible ? kToolbarHeight : 0.0,
+                child: _isAppBarVisible
+                    ? Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _playAllTracks,
+                              icon: Icon(
+                                Symbols.play_arrow_rounded,
                               ),
-                      ),
+                              label: const Text('Play All'),
+                            ),
+                            SizedBox(width: 8),
+                            IconButton.outlined(
+                              onPressed: () {},
+                              isSelected: false,
+                              icon: Icon(Symbols.shuffle),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              icon: Icon(Icons.sort_by_alpha),
+                              onPressed: () => _showSortOptions(context),
+                            ),
+                            IconButton(
+                              icon: Icon(_isGridView
+                                  ? Symbols.list
+                                  : Symbols.grid_view),
+                              onPressed: () {
+                                setState(() {
+                                  _isGridView = !_isGridView;
+                                  _saveViewPreference(_isGridView);
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      )
+                    : SizedBox.shrink(),
+              ),
+              Expanded(
+                child: _isLoading && _tracks.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : _errorMessage != null
+                        ? Center(
+                            child: Text(_errorMessage!,
+                                style: const TextStyle(color: Colors.red)))
+                        : NotificationListener<ScrollNotification>(
+                            onNotification: (ScrollNotification scrollInfo) {
+                              if (scrollInfo.metrics.pixels ==
+                                      scrollInfo.metrics.maxScrollExtent &&
+                                  !_isLoadingMore) {
+                                setState(() {
+                                  _isLoadingMore = true;
+                                });
+                                _fetchTracks();
+                              }
+                              return false;
+                            },
+                            child: _isGridView
+                                ? GridView.builder(
+                                    controller: _scrollController,
+                                    padding: EdgeInsets.only(bottom: 200),
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: screenWidth > 600
+                                          ? (screenWidth > 700 ? 4 : 3)
+                                          : 2,
+                                      childAspectRatio: screenWidth > 600
+                                          ? (screenWidth > 700
+                                              ? 0.5 / .75
+                                              : 3 / 3.5)
+                                          : 2 / 2.5,
+                                    ),
+                                    itemCount: _tracks.length + 1,
+                                    itemBuilder: (context, index) {
+                                      if (index == _tracks.length) {
+                                        return _isLoadingMore
+                                            ? Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              )
+                                            : SizedBox.shrink();
+                                      }
+                                      final track = _tracks[index];
+                                      final imageUrl = track['ImageTags'] !=
+                                                  null &&
+                                              track['ImageTags']['Primary'] !=
+                                                  null &&
+                                              _serverUrl != null
+                                          ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+                                          : null;
+                                      final audioUrl =
+                                          '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+                                      return InkWell(
+                                        borderRadius: BorderRadius.circular(10),
+                                        onTap: () {
+                                          _playTrack(index);
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Expanded(
+                                              child: imageUrl != null
+                                                  ? Card(
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: Image.network(
+                                                            imageUrl,
+                                                            fit: BoxFit.cover),
+                                                      ),
+                                                    )
+                                                  : Card(
+                                                      child: const Icon(
+                                                          Symbols.music_note,
+                                                          size: 50),
+                                                    ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.stretch,
+                                                children: [
+                                                  Text(
+                                                    track['Name'] ?? 'Unknown',
+                                                    maxLines: 1,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  Text(
+                                                    track['Album'] ?? 'Unknown',
+                                                    maxLines: 1,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : ListView.builder(
+                                    controller: _scrollController,
+                                    itemCount: _tracks.length + 1,
+                                    padding: EdgeInsets.only(bottom: 200),
+                                    itemBuilder: (context, index) {
+                                      if (index == _tracks.length) {
+                                        return _isLoadingMore
+                                            ? Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              )
+                                            : SizedBox.shrink();
+                                      }
+                                      final track = _tracks[index];
+                                      final imageUrl = track['ImageTags'] !=
+                                                  null &&
+                                              track['ImageTags']['Primary'] !=
+                                                  null &&
+                                              _serverUrl != null
+                                          ? '$_serverUrl/Items/${track['Id']}/Images/Primary?tag=${track['ImageTags']['Primary']}'
+                                          : null;
+                                      final audioUrl =
+                                          '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
+                                      return ListTile(
+                                        leading: imageUrl != null
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                                child: SizedBox(
+                                                  width: 50,
+                                                  height: 50,
+                                                  child: Image.network(imageUrl,
+                                                      fit: BoxFit.cover),
+                                                ),
+                                              )
+                                            : const CircleAvatar(
+                                                radius: 25,
+                                                child: Icon(Symbols.music_note),
+                                              ),
+                                        title: Text(
+                                          track['Name'] ?? 'Unknown',
+                                          maxLines: 1,
+                                        ),
+                                        subtitle:
+                                            Text(track['Album'] ?? 'Unknown'),
+                                        onTap: () {
+                                          _playTrack(index);
+                                        },
+                                      );
+                                    },
+                                  ),
+                          ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
