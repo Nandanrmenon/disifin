@@ -108,92 +108,96 @@ class _MainScreenState extends State<MainScreen> {
                       right: BorderSide(
                           width: 1,
                           color: Theme.of(context).colorScheme.outline))),
-              child: Column(
-                crossAxisAlignment: railState
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.center,
-                children: [
-                  if (Platform.isMacOS)
-                    SizedBox(
-                      height: 30,
-                    ),
-                  if (!railState)
-                    IconButton(
-                        tooltip: 'Open',
-                        onPressed: () {
-                          setState(() {
-                            railState = !railState;
-                          });
-                          print(railState);
-                        },
-                        icon: Icon(Symbols.menu)),
-                  if (railState)
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 20,
-                        ),
-                        IconButton(
-                            tooltip: 'Close',
-                            onPressed: () {
-                              setState(() {
-                                railState = !railState;
-                              });
-                              print(railState);
-                            },
-                            icon: Icon(Symbols.arrow_back)),
-                        SizedBox(
-                          width: 18,
-                        ),
-                        AppLogo(),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        Text(
-                          'Disifin',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        )
-                      ],
-                    ),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      child: NavigationRail(
-                        selectedIndex: _selectedIndex,
-                        onDestinationSelected: _onItemTapped,
-                        destinations: const [
-                          NavigationRailDestination(
-                            icon: Icon(Symbols.home_rounded),
-                            selectedIcon: Icon(
-                              Symbols.home_rounded,
-                              fill: 1,
-                            ),
-                            label: Text('Home'),
+              child: SafeArea(
+                bottom: false,
+                top: Platform.isAndroid || Platform.isIOS ? true : false,
+                child: Column(
+                  crossAxisAlignment: railState
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
+                  children: [
+                    if (Platform.isMacOS)
+                      SizedBox(
+                        height: 30,
+                      ),
+                    if (!railState)
+                      IconButton(
+                          tooltip: 'Open',
+                          onPressed: () {
+                            setState(() {
+                              railState = !railState;
+                            });
+                            print(railState);
+                          },
+                          icon: Icon(Symbols.menu)),
+                    if (railState)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 20,
                           ),
-                          NavigationRailDestination(
-                            icon: Icon(Symbols.search_rounded),
-                            selectedIcon: Icon(
-                              Symbols.search_rounded,
-                              fill: 1,
-                            ),
-                            label: Text('Search'),
+                          IconButton(
+                              tooltip: 'Close',
+                              onPressed: () {
+                                setState(() {
+                                  railState = !railState;
+                                });
+                                print(railState);
+                              },
+                              icon: Icon(Symbols.arrow_back)),
+                          SizedBox(
+                            width: 18,
                           ),
-                          NavigationRailDestination(
-                            icon: Icon(Symbols.art_track_rounded),
-                            selectedIcon: Icon(
-                              Symbols.art_track_rounded,
-                              fill: 1,
-                            ),
-                            label: Text('Library'),
+                          AppLogo(),
+                          SizedBox(
+                            width: 4,
                           ),
+                          Text(
+                            'Disifin',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          )
                         ],
-                        extended: railState,
+                      ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10)),
+                        child: NavigationRail(
+                          selectedIndex: _selectedIndex,
+                          onDestinationSelected: _onItemTapped,
+                          destinations: const [
+                            NavigationRailDestination(
+                              icon: Icon(Symbols.home_rounded),
+                              selectedIcon: Icon(
+                                Symbols.home_rounded,
+                                fill: 1,
+                              ),
+                              label: Text('Home'),
+                            ),
+                            NavigationRailDestination(
+                              icon: Icon(Symbols.search_rounded),
+                              selectedIcon: Icon(
+                                Symbols.search_rounded,
+                                fill: 1,
+                              ),
+                              label: Text('Search'),
+                            ),
+                            NavigationRailDestination(
+                              icon: Icon(Symbols.art_track_rounded),
+                              selectedIcon: Icon(
+                                Symbols.art_track_rounded,
+                                fill: 1,
+                              ),
+                              label: Text('Library'),
+                            ),
+                          ],
+                          extended: railState,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -275,7 +279,12 @@ class _MainScreenState extends State<MainScreen> {
                   _showFullscreenPlayer(context);
                 },
                 child: Card(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  // margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20))),
+                  margin: EdgeInsets.zero,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 12.0, horizontal: 12),
@@ -357,6 +366,7 @@ class _MainScreenState extends State<MainScreen> {
                                 _sliderValue =
                                     position.inMilliseconds.toDouble();
                                 return LinearProgressIndicator(
+                                  year2023: false,
                                   value: duration.inMilliseconds > 0
                                       ? _sliderValue /
                                           duration.inMilliseconds.toDouble()
@@ -380,13 +390,15 @@ class _MainScreenState extends State<MainScreen> {
           ),
         if (screenWidth <= 600)
           Padding(
-            padding: EdgeInsets.only(left: 16, right: 16, bottom: 8),
+            // padding: EdgeInsets.only(left: 16, right: 16, bottom: 8),
+            padding: EdgeInsets.zero,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border:
-                    Border.all(color: Theme.of(context).colorScheme.outline),
-              ),
+                  // borderRadius: BorderRadius.circular(10),
+                  // border: Border(
+                  //   top: BorderSide(color: Theme.of(context).colorScheme.outline),
+                  // ),
+                  ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: BottomNavigationBar(

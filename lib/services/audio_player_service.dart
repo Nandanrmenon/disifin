@@ -110,6 +110,7 @@ class AudioPlayerService {
           title: trackName,
           artUri: Uri.parse(trackImageUrl),
           artist: trackArtist,
+          duration: duration,
         ),
       ));
       await _audioPlayer.play().then(
@@ -127,6 +128,7 @@ class AudioPlayerService {
       List<String> trackImageUrls, List<String> trackArtists) async {
     try {
       final playlist = ConcatenatingAudioSource(
+        useLazyPreparation: true,
         children: List.generate(urls.length, (index) {
           return AudioSource.uri(
             Uri.parse(urls[index]),
@@ -136,6 +138,7 @@ class AudioPlayerService {
               title: trackNames[index],
               artUri: Uri.parse(trackImageUrls[index]),
               artist: trackArtists[index],
+              duration: duration,
             ),
           );
         }),

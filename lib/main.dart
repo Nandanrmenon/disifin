@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:disifin/globals.dart' as globals;
 import 'package:disifin/services/database_service.dart';
 import 'package:disifin/theme.dart';
@@ -32,21 +34,21 @@ Future<void> main() async {
   globals.baseUrl = prefs.getString('serverName') ?? '';
 
   final themeNotifier = ThemeNotifier(await getAppTheme());
+  if (Platform.isMacOS) {
+    await windowManager.ensureInitialized();
 
-  await windowManager.ensureInitialized();
-
-  WindowOptions windowOptions = WindowOptions(
-    size: Size(1000, 800),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
-
+    WindowOptions windowOptions = WindowOptions(
+      size: Size(1000, 800),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   runApp(
     ChangeNotifierProvider(
       create: (_) => themeNotifier,
