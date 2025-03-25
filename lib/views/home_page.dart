@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  if (kReleaseMode)
+                  if (!kReleaseMode)
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Card(

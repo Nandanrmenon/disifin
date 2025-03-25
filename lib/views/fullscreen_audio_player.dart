@@ -52,7 +52,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(Symbols.keyboard_arrow_down),
+            icon: Icon(Symbols.arrow_back),
           ),
           const Spacer(),
           Text(
@@ -179,6 +179,8 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                             elevation: 2,
                             pressedElevation: 0),
                         overlappingShapeStrokeColor: Colors.black,
+                        // overlayColor: _dominantColor ??
+                        //     Theme.of(context).colorScheme.primary,
                         activeTrackColor:
                             Theme.of(context).colorScheme.primaryContainer,
                         thumbColor: Theme.of(context).colorScheme.primary,
@@ -211,6 +213,13 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           _sliderValue = value;
                         });
                       },
+                      activeColor: _dominantColor ??
+                          Theme.of(context).colorScheme.primary,
+                      inactiveColor: _dominantColor?.withValues(alpha: 0.2) ??
+                          Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.2),
                       onChangeEnd: (value) {
                         AudioPlayerService.seek(
                             Duration(milliseconds: value.toInt()));
@@ -342,15 +351,18 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   }
 
   Widget bottomBar() {
-    return Row(
-      children: [
-        IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
-        Spacer(),
-        IconButton(
-            onPressed: () => Navigator.push(context,
-                CupertinoSheetRoute(builder: (context) => const QueueView())),
-            icon: const Icon(Symbols.queue_music))
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24),
+      child: Row(
+        children: [
+          IconButton(onPressed: () {}, icon: Icon(Symbols.lyrics)),
+          Spacer(),
+          IconButton(
+              onPressed: () => Navigator.push(context,
+                  CupertinoSheetRoute(builder: (context) => const QueueView())),
+              icon: const Icon(Symbols.queue_music))
+        ],
+      ),
     );
   }
 
@@ -392,77 +404,84 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
+            height: double.infinity,
             color: Colors.black26,
           ),
         ),
         Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            bottom: false,
-            top: (Platform.isAndroid && screenWidth > 600) || Platform.isIOS
-                ? true
-                : false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: screenWidth > 600
-                  ? Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (Platform.isMacOS)
-                          SizedBox(
-                            height: 20,
-                          ),
-                        topBar(),
-                        Spacer(),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            SizedBox(
-                              width: 24,
-                            ),
-                            albumArt(),
-                            // SizedBox(
-                            //   width: 48,
-                            // ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  musicInfo(),
-                                  musicSlider(),
-                                  musicControls(),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 24,
-                            ),
-                          ],
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: screenWidth > 600
+                ? Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (Platform.isMacOS)
+                        SizedBox(
+                          height: 20,
                         ),
-                        Spacer(),
-                        bottomBar(),
-                      ],
-                    )
-                  : Column(
+                      topBar(),
+                      Spacer(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            width: 24,
+                          ),
+                          albumArt(),
+                          // SizedBox(
+                          //   width: 48,
+                          // ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                musicInfo(),
+                                musicSlider(),
+                                musicControls(),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 24,
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      bottomBar(),
+                    ],
+                  )
+                : SafeArea(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         topBar(),
                         const SizedBox(height: 16),
-                        albumArt(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: albumArt(),
+                        ),
                         const SizedBox(height: 8),
-                        musicInfo(),
+                        Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: musicInfo(),
+                        ),
                         const SizedBox(height: 8),
                         musicSlider(),
                         const SizedBox(height: 8),
                         musicControls(),
-                        const SizedBox(height: 16),
-                        bottomBar(),
+                        Spacer(),
+                        // const SizedBox(height: 16),
+                        // bottomBar(),
                       ],
                     ),
-            ),
+                  ),
           ),
+          bottomNavigationBar: screenWidth > 600 ? null : bottomBar(),
         ),
       ],
     );

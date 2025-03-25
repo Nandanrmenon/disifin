@@ -7,7 +7,6 @@ import 'package:disifin/views/home_page.dart';
 import 'package:disifin/views/media_list_screen.dart';
 import 'package:disifin/views/search_page.dart';
 import 'package:disifin/widgets/applogo.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -50,25 +49,17 @@ class _MainScreenState extends State<MainScreen> {
 
   void _showFullscreenPlayer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 600) {
-      Navigator.of(context).push(
-        CupertinoSheetRoute(
-          settings: RouteSettings(
-            name: '/fullscreen_audio_player',
-          ),
-          builder: (context) => const FullscreenAudioPlayer(),
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        // isScrollControlled: true,
+        // useSafeArea: true,
+        settings: RouteSettings(
+          name: '/fullscreen_audio_player',
         ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          settings: RouteSettings(
-            name: '/fullscreen_audio_player',
-          ),
-          builder: (context) => const FullscreenAudioPlayer(),
-        ),
-      );
-    }
+        builder: (context) => const FullscreenAudioPlayer(),
+      ),
+    );
   }
 
   @override
@@ -389,50 +380,35 @@ class _MainScreenState extends State<MainScreen> {
             height: 20,
           ),
         if (screenWidth <= 600)
-          Padding(
-            // padding: EdgeInsets.only(left: 16, right: 16, bottom: 8),
-            padding: EdgeInsets.zero,
-            child: Container(
-              decoration: BoxDecoration(
-                  // borderRadius: BorderRadius.circular(10),
-                  // border: Border(
-                  //   top: BorderSide(color: Theme.of(context).colorScheme.outline),
-                  // ),
-                  ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: BottomNavigationBar(
-                  items: const <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Symbols.home_rounded),
-                      activeIcon: Icon(
-                        Symbols.home_rounded,
-                        fill: 1,
-                      ),
-                      label: 'Home',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Symbols.search_rounded),
-                      activeIcon: Icon(
-                        Symbols.search_rounded,
-                        fill: 1,
-                      ),
-                      label: 'Search',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Symbols.art_track_rounded),
-                      activeIcon: Icon(
-                        Symbols.art_track_rounded,
-                        fill: 1,
-                      ),
-                      label: 'Library',
-                    ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  onTap: _onItemTapped,
+          BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Symbols.home_rounded),
+                activeIcon: Icon(
+                  Symbols.home_rounded,
+                  fill: 1,
                 ),
+                label: 'Home',
               ),
-            ),
+              BottomNavigationBarItem(
+                icon: Icon(Symbols.search_rounded),
+                activeIcon: Icon(
+                  Symbols.search_rounded,
+                  fill: 1,
+                ),
+                label: 'Search',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Symbols.art_track_rounded),
+                activeIcon: Icon(
+                  Symbols.art_track_rounded,
+                  fill: 1,
+                ),
+                label: 'Library',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
           ),
       ],
     );
