@@ -9,7 +9,9 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TrackListScreen extends StatefulWidget {
-  const TrackListScreen({super.key});
+  final AudioPlayerService audioPlayerService;
+
+  const TrackListScreen({super.key, required this.audioPlayerService});
 
   @override
   State<TrackListScreen> createState() => _TrackListScreenState();
@@ -180,8 +182,12 @@ class _TrackListScreenState extends State<TrackListScreen> {
       trackArtists.add(artist);
     }
 
-    AudioPlayerService.playQueue(
-        urls, trackNames, trackImageUrls, trackArtists);
+    widget.audioPlayerService.playQueue(
+      urls,
+      trackNames,
+      trackImageUrls,
+      trackArtists,
+    );
   }
 
   void _showSortOptions(BuildContext context) {
@@ -508,7 +514,11 @@ class _TrackListScreenState extends State<TrackListScreen> {
       trackArtists.add(artist);
     }
 
-    AudioPlayerService.playQueue(
-        urls, trackNames, trackImageUrls, trackArtists);
+    widget.audioPlayerService.playQueue(
+      urls,
+      trackNames,
+      trackImageUrls,
+      trackArtists,
+    );
   }
 }

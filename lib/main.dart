@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:disifin/globals.dart' as globals;
+import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/services/database_service.dart';
 import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
@@ -13,19 +15,27 @@ import 'package:disifin/views/music_player.dart';
 import 'package:disifin/views/search_page.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
+late AudioHandler _audioHandler;
+late AudioPlayerService _audioPlayerService;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-    androidNotificationChannelName: 'Audio playback',
-    androidNotificationOngoing: true,
+  _audioHandler = await AudioService.init(
+    builder: () => AudioPlayerService(),
+    config: AudioServiceConfig(
+      androidNotificationChannelId: 'com.nahnah.disifin.channel.audio',
+      androidNotificationChannelName: 'Music playback',
+    ),
   );
+
+  _audioPlayerService = AudioPlayerService.initialize(_audioHandler);
+
+  await _audioPlayerService.loadPlayerState(_audioPlayerService);
 
   await DatabaseService.initDatabase();
 
@@ -52,15 +62,18 @@ Future<void> main() async {
   runApp(
     ChangeNotifierProvider(
       create: (_) => themeNotifier,
-      child: MyApp(isLoggedIn: isLoggedIn),
+      child: MyApp(
+          isLoggedIn: isLoggedIn, audioPlayerService: _audioPlayerService),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
+  final AudioPlayerService audioPlayerService;
 
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp(
+      {super.key, required this.isLoggedIn, required this.audioPlayerService});
 
   @override
   Widget build(BuildContext context) {
@@ -73,15 +86,19 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           initialRoute: isLoggedIn ? '/main' : '/login',
           routes: {
-            '/': (context) => const MainScreen(),
+            '/': (context) =>
+                MainScreen(audioPlayerService: audioPlayerService),
             '/music': (context) => const MusicPlayer(),
             '/login': (context) => const LoginScreen(),
-            '/tracks': (context) => const TrackListScreen(),
+            '/tracks': (context) =>
+                TrackListScreen(audioPlayerService: audioPlayerService),
             '/albums': (context) => const AlbumListScreen(),
             '/artists': (context) => const ArtistListScreen(),
-            '/media': (context) => const MediaListScreen(),
+            '/media': (context) =>
+                MediaListScreen(audioPlayerService: audioPlayerService),
             '/search': (context) => const SearchPage(),
-            '/main': (context) => const MainScreen(),
+            '/main': (context) =>
+                MainScreen(audioPlayerService: audioPlayerService),
             '/fullscreen_audio_player': (context) =>
                 const FullscreenAudioPlayer(),
           },

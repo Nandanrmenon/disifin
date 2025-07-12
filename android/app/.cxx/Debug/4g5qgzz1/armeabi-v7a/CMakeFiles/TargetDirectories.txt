@@ -1,2 +1,0 @@
-/Users/nandu/Documents/Projects/Flutter/disifin/android/app/.cxx/Debug/4g5qgzz1/armeabi-v7a/CMakeFiles/edit_cache.dir
-/Users/nandu/Documents/Projects/Flutter/disifin/android/app/.cxx/Debug/4g5qgzz1/armeabi-v7a/CMakeFiles/rebuild_cache.dir

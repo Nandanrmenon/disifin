@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:audio_service/audio_service.dart';
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/widgets/waveform.dart';
 import 'package:flutter/cupertino.dart';
@@ -196,7 +197,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                           });
                         },
                         onChangeEnd: (value) {
-                          AudioPlayerService.seek(
+                          AudioPlayerService.seekTrack(
                               Duration(milliseconds: value.toInt()));
                         },
                       ),
@@ -221,7 +222,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                               .primary
                               .withValues(alpha: 0.2),
                       onChangeEnd: (value) {
-                        AudioPlayerService.seek(
+                        AudioPlayerService.seekTrack(
                             Duration(milliseconds: value.toInt()));
                       },
                     ),
@@ -268,7 +269,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         ),
         IconButton(
           icon: const Icon(Symbols.skip_previous),
-          onPressed: AudioPlayerService.skipToPrevious,
+          onPressed: AudioPlayerService.skipToPreviousPlayback,
         ),
         SizedBox(width: 20),
         StreamBuilder<PlayerState>(
@@ -320,7 +321,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                         borderRadius: BorderRadius.circular(15)),
                   ),
                 ),
-                onPressed: AudioPlayerService.pause,
+                onPressed: AudioPlayerService.pausePlayback,
               );
             } else {
               return IconButton.filled(
@@ -340,11 +341,12 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         SizedBox(width: 20),
         IconButton(
           icon: const Icon(Symbols.skip_next),
-          onPressed: AudioPlayerService.skipToNext,
+          onPressed: AudioPlayerService.skipToNextTrack,
         ),
         IconButton(
           icon: const Icon(Symbols.shuffle),
-          onPressed: () {},
+          onPressed: () {
+          },
         ),
       ],
     );

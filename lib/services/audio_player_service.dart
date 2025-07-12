@@ -1,11 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:disifin/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -34,12 +35,104 @@ class TrackInfo {
   }
 }
 
-class AudioPlayerService {
+class AudioPlayerService extends BaseAudioHandler
+    with
+        QueueHandler, // mix in default queue callback implementations
+        SeekHandler {
   static final AudioPlayer _audioPlayer = AudioPlayer();
   static String? currentTrackName;
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
   static Database? _database;
+
+  late final AudioHandler _audioHandler;
+
+  AudioPlayerService();
+
+  AudioPlayerService.initialize(this._audioHandler) {
+    _audioPlayer.playbackEventStream.listen((event) {
+      playbackState.add(playbackStateFromEvent(event));
+    });
+
+    _audioPlayer.currentIndexStream.listen((index) {
+      if (index != null && index < _audioPlayer.sequence!.length) {
+        final mediaItem = _audioPlayer.sequence![index].tag as MediaItem;
+        this.mediaItem.add(mediaItem); // Correctly update the mediaItem
+      }
+    });
+  }
+
+  PlaybackState playbackStateFromEvent(PlaybackEvent event) {
+    return PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        _audioPlayer.playing ? MediaControl.pause : MediaControl.play,
+        MediaControl.skipToNext,
+        MediaControl.stop,
+      ],
+      androidCompactActionIndices: const [0, 1, 2],
+      processingState: _mapProcessingState(_audioPlayer.processingState),
+      playing: _audioPlayer.playing,
+      updatePosition: _audioPlayer.position,
+      bufferedPosition: _audioPlayer.bufferedPosition,
+      speed: _audioPlayer.speed,
+    );
+  }
+
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
+  }
+
+  @override
+  Future<void> play() => _audioPlayer.play();
+
+  @override
+  Future<void> pause() => _audioPlayer.pause();
+
+  @override
+  Future<void> skipToNext() => _audioPlayer.seekToNext();
+
+  @override
+  Future<void> skipToPrevious() => _audioPlayer.seekToPrevious();
+
+  @override
+  Future<void> stop() => _audioPlayer.stop();
+
+  @override
+  Future<void> seek(Duration position) => _audioPlayer.seek(position);
+
+  @override
+  Future<void> setSpeed(double speed) => _audioPlayer.setSpeed(speed);
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) {
+    _audioPlayer.setLoopMode(
+      repeatMode == AudioServiceRepeatMode.one
+          ? LoopMode.one
+          : repeatMode == AudioServiceRepeatMode.all
+              ? LoopMode.all
+              : LoopMode.off,
+    );
+    return super.setRepeatMode(repeatMode);
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) {
+    _audioPlayer
+        .setShuffleModeEnabled(shuffleMode == AudioServiceShuffleMode.all);
+    return super.setShuffleMode(shuffleMode);
+  }
 
   static Future<void> _initDatabase() async {
     if (_database != null) return;
@@ -78,7 +171,7 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> loadPlayerState() async {
+  Future<void> loadPlayerState(AudioPlayerService audioPlayerService) async {
     final prefs = await SharedPreferences.getInstance();
     final url = prefs.getString('currentTrackUrl');
     final name = prefs.getString('currentTrackName');
@@ -91,27 +184,30 @@ class AudioPlayerService {
         imageUrl != null &&
         artist != null &&
         position != null) {
-      await play(url, name, imageUrl, artist);
-      await seek(Duration(milliseconds: position));
-      await pause(); // Ensure the player is paused initially
+      await playTrack(url, name, imageUrl, artist);
+      await seekTrack(Duration(milliseconds: position));
+      await pausePlayback(); // Ensure the player is paused initially
     }
   }
 
-  static Future<void> play(String url, String trackName, String trackImageUrl,
+  Future<void> playTrack(String url, String trackName, String trackImageUrl,
       String trackArtist) async {
     try {
       currentTrackName = trackName;
       currentTrackImageUrl = trackImageUrl;
+      final mediaItem = MediaItem(
+        id: url,
+        album: "Album name",
+        title: trackName,
+        artUri: Uri.parse(trackImageUrl),
+        artist: trackArtist,
+        duration: duration,
+      );
+      this.mediaItem.add(mediaItem); // Correctly update the mediaItem
+
       await _audioPlayer.setAudioSource(AudioSource.uri(
         Uri.parse(url),
-        tag: MediaItem(
-          id: url,
-          album: "Album name",
-          title: trackName,
-          artUri: Uri.parse(trackImageUrl),
-          artist: trackArtist,
-          duration: duration,
-        ),
+        tag: mediaItem,
       ));
       await _audioPlayer.play().then(
             (value) => _addToHistory(TrackInfo(
@@ -124,30 +220,42 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> playQueue(List<String> urls, List<String> trackNames,
+  Future<void> playQueue(List<String> urls, List<String> trackNames,
       List<String> trackImageUrls, List<String> trackArtists) async {
     try {
       final playlist = ConcatenatingAudioSource(
         useLazyPreparation: true,
         children: List.generate(urls.length, (index) {
+          final mediaItem = MediaItem(
+            id: urls[index],
+            album: "Album name",
+            title: trackNames[index],
+            artUri: Uri.parse(trackImageUrls[index]),
+            artist: trackArtists[index],
+            duration: duration,
+          );
           return AudioSource.uri(
             Uri.parse(urls[index]),
-            tag: MediaItem(
-              id: urls[index],
-              album: "Album name",
-              title: trackNames[index],
-              artUri: Uri.parse(trackImageUrls[index]),
-              artist: trackArtists[index],
-              duration: duration,
-            ),
+            tag: mediaItem,
           );
         }),
       );
       await _audioPlayer.setAudioSource(playlist);
       currentTrackName = trackNames[0];
       currentTrackImageUrl = trackImageUrls[0];
-      debugPrint('play');
 
+      // Notify AudioService of the first MediaItem
+      final firstMediaItem = MediaItem(
+        id: urls[0],
+        album: "Album name",
+        title: trackNames[0],
+        artUri: Uri.parse(trackImageUrls[0]),
+        artist: trackArtists[0],
+        duration: duration,
+      );
+      mediaItem.add(firstMediaItem); // Correctly update the mediaItem
+
+      debugPrint('play');
       await _audioPlayer.play().then(
             (value) => _addToHistory(TrackInfo(
                 name: trackNames[0],
@@ -170,7 +278,7 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> pause() async {
+  static Future<void> pausePlayback() async {
     try {
       await _audioPlayer.pause();
       _savePlayerState();
@@ -179,7 +287,7 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> stop() async {
+  static Future<void> stopPlayback() async {
     try {
       await _audioPlayer.stop();
       _savePlayerState();
@@ -196,7 +304,7 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> skipToNext() async {
+  static Future<void> skipToNextTrack() async {
     try {
       await _audioPlayer.seekToNext();
       final currentTrack = await _audioPlayer.currentIndexStream.first;
@@ -218,7 +326,7 @@ class AudioPlayerService {
     }
   }
 
-  static Future<void> skipToPrevious() async {
+  static Future<void> skipToPreviousPlayback() async {
     try {
       await _audioPlayer.seekToPrevious();
       final currentTrack = await _audioPlayer.currentIndexStream.first;
@@ -246,7 +354,7 @@ class AudioPlayerService {
       _audioPlayer.playerStateStream;
   static Stream<Duration?> get durationStream => _audioPlayer.durationStream;
   static Duration? get duration => _audioPlayer.duration;
-  static Future<void> seek(Duration position) async {
+  static Future<void> seekTrack(Duration position) async {
     await _audioPlayer.seek(position);
     _savePlayerState();
   }

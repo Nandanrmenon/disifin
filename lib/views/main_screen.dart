@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animations/animations.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/views/fullscreen_audio_player.dart';
 import 'package:disifin/views/home_page.dart';
@@ -12,8 +13,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+late AudioHandler _audioHandler;
+
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final AudioPlayerService audioPlayerService;
+
+  const MainScreen({super.key, required this.audioPlayerService});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -26,11 +31,11 @@ class _MainScreenState extends State<MainScreen> {
   bool railState = false;
   bool _amoledBackground = false;
 
-  static const List<Widget> _pages = <Widget>[
-    HomePage(),
-    SearchPage(),
-    MediaListScreen(),
-  ];
+  List<Widget> get _pages => <Widget>[
+        const HomePage(),
+        const SearchPage(),
+        MediaListScreen(audioPlayerService: widget.audioPlayerService),
+      ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -71,7 +76,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _loadPlayerState() async {
-    await AudioPlayerService.loadPlayerState();
+    await widget.audioPlayerService
+        .loadPlayerState(context as AudioPlayerService);
     setState(() {});
   }
 
@@ -337,7 +343,7 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                               onPressed: () {
                                 if (playing) {
-                                  AudioPlayerService.pause();
+                                  AudioPlayerService.pausePlayback();
                                 } else {
                                   AudioPlayerService.resume();
                                 }

@@ -1,10 +1,13 @@
+import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
 
 class MediaListScreen extends StatefulWidget {
-  const MediaListScreen({super.key});
+  final AudioPlayerService audioPlayerService;
+
+  const MediaListScreen({super.key, required this.audioPlayerService});
 
   @override
   State<MediaListScreen> createState() => _MediaListScreenState();
@@ -64,7 +67,7 @@ class _MediaListScreenState extends State<MediaListScreen> {
   Widget _buildContent() {
     switch (_selectedChipIndex) {
       case 0:
-        return TrackListScreen();
+        return TrackListScreen(audioPlayerService: widget.audioPlayerService);
       case 1:
         return AlbumListScreen();
       case 2:
@@ -75,7 +78,7 @@ class _MediaListScreenState extends State<MediaListScreen> {
   }
 
   Widget _buildTracks() {
-    return TrackListScreen();
+    return TrackListScreen(audioPlayerService: widget.audioPlayerService);
   }
 
   Widget _buildAlbums() {
