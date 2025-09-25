@@ -62,12 +62,12 @@ Future<ThemeData> getAppTheme() async {
       outlineVariant: Colors.white10,
       dynamicSchemeVariant: schemeVariant,
     ),
-    pageTransitionsTheme: PageTransitionsTheme(
-      builders: Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
-        TargetPlatform.values,
-        value: (_) => const FadeForwardsPageTransitionsBuilder(),
-      ),
-    ),
+    // pageTransitionsTheme: PageTransitionsTheme(
+    //   builders: Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
+    //     TargetPlatform.values,
+    //     value: (_) => const FadeForwardsPageTransitionsBuilder(),
+    //   ),
+    // ),
     iconTheme: const IconThemeData(fill: 0, weight: 300, color: Colors.white),
     useMaterial3: true,
     appBarTheme: AppBarTheme(

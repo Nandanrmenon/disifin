@@ -171,7 +171,7 @@ class AudioPlayerService extends BaseAudioHandler
     }
   }
 
-  Future<void> loadPlayerState(AudioPlayerService audioPlayerService) async {
+  Future<void> loadPlayerState() async {
     final prefs = await SharedPreferences.getInstance();
     final url = prefs.getString('currentTrackUrl');
     final name = prefs.getString('currentTrackName');
@@ -184,14 +184,17 @@ class AudioPlayerService extends BaseAudioHandler
         imageUrl != null &&
         artist != null &&
         position != null) {
-      await playTrack(url, name, imageUrl, artist);
+      // Prepare the audio source and restore position without starting playback
+      await playTrack(url, name, imageUrl, artist, play: false);
       await seekTrack(Duration(milliseconds: position));
-      await pausePlayback(); // Ensure the player is paused initially
+      // Ensure paused state after restore
+      await _audioPlayer.pause();
     }
   }
 
-  Future<void> playTrack(String url, String trackName, String trackImageUrl,
-      String trackArtist) async {
+  Future<void> playTrack(
+      String url, String trackName, String trackImageUrl, String trackArtist,
+      {bool play = true}) async {
     try {
       currentTrackName = trackName;
       currentTrackImageUrl = trackImageUrl;
@@ -209,11 +212,15 @@ class AudioPlayerService extends BaseAudioHandler
         Uri.parse(url),
         tag: mediaItem,
       ));
-      await _audioPlayer.play().then(
-            (value) => _addToHistory(TrackInfo(
-                name: trackName, imageUrl: trackImageUrl, artist: trackArtist)),
-          );
-      _savePlayerState();
+      if (play) {
+        await _audioPlayer.play().then(
+              (value) => _addToHistory(TrackInfo(
+                  name: trackName,
+                  imageUrl: trackImageUrl,
+                  artist: trackArtist)),
+            );
+      }
+      await _savePlayerState();
       debugPrint('Added to history: $trackName'); // Debug print
     } catch (e) {
       debugPrint('Error playing audio: $e');
@@ -359,11 +366,9 @@ class AudioPlayerService extends BaseAudioHandler
     _savePlayerState();
   }
 
-  static List<String> get currentQueue =>
-      _audioPlayer.sequence
-          .map((source) => (source.tag as MediaItem?)?.title ?? 'Unknown Track')
-          .toList() ??
-      [];
+  static List<String> get currentQueue => _audioPlayer.sequence
+      .map((source) => (source.tag as MediaItem?)?.title ?? 'Unknown Track')
+      .toList();
 
   static Stream<TrackInfo?> get currentTrackStream =>
       _audioPlayer.currentIndexStream.map((index) {

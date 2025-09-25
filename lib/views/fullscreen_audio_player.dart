@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:ui' as ui;
 
-import 'package:audio_service/audio_service.dart';
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/widgets/waveform.dart';
 import 'package:flutter/cupertino.dart';
@@ -345,8 +343,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         ),
         IconButton(
           icon: const Icon(Symbols.shuffle),
-          onPressed: () {
-          },
+          onPressed: () {},
         ),
       ],
     );
@@ -371,121 +368,79 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return Stack(
-      children: [
-        StreamBuilder<TrackInfo?>(
-          stream: AudioPlayerService.currentTrackStream,
-          builder: (context, snapshot) {
-            final trackInfo = snapshot.data;
-            final trackImageUrl = trackInfo?.imageUrl;
-            return trackImageUrl != null && trackImageUrl.isNotEmpty
-                ? ImageFiltered(
-                    imageFilter: ui.ImageFilter.blur(
-                      sigmaX: 20,
-                      sigmaY: 20,
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: screenWidth > 600
+            ? Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (Platform.isMacOS)
+                    SizedBox(
+                      height: 20,
                     ),
-                    child: Image.network(
-                      trackImageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      gradient: SweepGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.surfaceBright,
-                          Theme.of(context).colorScheme.surface,
-                        ],
-                      ),
-                    ),
-                  );
-          },
-        ),
-        BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            height: double.infinity,
-            color: Colors.black26,
-          ),
-        ),
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: screenWidth > 600
-                ? Column(
-                    mainAxisSize: MainAxisSize.max,
+                  topBar(),
+                  Spacer(),
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      if (Platform.isMacOS)
-                        SizedBox(
-                          height: 20,
-                        ),
-                      topBar(),
-                      Spacer(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          SizedBox(
-                            width: 24,
-                          ),
-                          albumArt(),
-                          // SizedBox(
-                          //   width: 48,
-                          // ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                musicInfo(),
-                                musicSlider(),
-                                musicControls(),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 24,
-                          ),
-                        ],
+                      SizedBox(
+                        width: 24,
                       ),
-                      Spacer(),
-                      bottomBar(),
+                      albumArt(),
+                      // SizedBox(
+                      //   width: 48,
+                      // ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            musicInfo(),
+                            musicSlider(),
+                            musicControls(),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 24,
+                      ),
                     ],
-                  )
-                : SafeArea(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        topBar(),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: albumArt(),
-                        ),
-                        const SizedBox(height: 8),
-                        Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: musicInfo(),
-                        ),
-                        const SizedBox(height: 8),
-                        musicSlider(),
-                        const SizedBox(height: 8),
-                        musicControls(),
-                        Spacer(),
-                        // const SizedBox(height: 16),
-                        // bottomBar(),
-                      ],
-                    ),
                   ),
-          ),
-          bottomNavigationBar: screenWidth > 600 ? null : bottomBar(),
-        ),
-      ],
+                  Spacer(),
+                  bottomBar(),
+                ],
+              )
+            : SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    topBar(),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: albumArt(),
+                    ),
+                    const SizedBox(height: 8),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: musicInfo(),
+                    ),
+                    const SizedBox(height: 8),
+                    musicSlider(),
+                    const SizedBox(height: 8),
+                    musicControls(),
+                    Spacer(),
+                    // const SizedBox(height: 16),
+                    // bottomBar(),
+                  ],
+                ),
+              ),
+      ),
+      bottomNavigationBar: screenWidth > 600 ? null : bottomBar(),
     );
   }
 

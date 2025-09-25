@@ -8,6 +8,7 @@ import 'package:disifin/views/home_page.dart';
 import 'package:disifin/views/media_list_screen.dart';
 import 'package:disifin/views/search_page.dart';
 import 'package:disifin/widgets/applogo.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -55,15 +56,9 @@ class _MainScreenState extends State<MainScreen> {
   void _showFullscreenPlayer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        // isScrollControlled: true,
-        // useSafeArea: true,
-        settings: RouteSettings(
-          name: '/fullscreen_audio_player',
-        ),
-        builder: (context) => const FullscreenAudioPlayer(),
-      ),
+    showCupertinoSheet(
+      context: context,
+      builder: (context) => FullscreenAudioPlayer(),
     );
   }
 
@@ -76,8 +71,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _loadPlayerState() async {
-    await widget.audioPlayerService
-        .loadPlayerState(context as AudioPlayerService);
+    await widget.audioPlayerService.loadPlayerState();
     setState(() {});
   }
 
@@ -90,7 +84,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final screenWidth = MediaQuery.of(context).size.width;
 
     if (screenWidth > 600) {
@@ -249,17 +242,12 @@ class _MainScreenState extends State<MainScreen> {
         },
         child: _pages[_selectedIndex],
       ),
-      bottomNavigationBar: _buildBottomPlayer(context),
-      extendBody: true,
-    );
-  }
-
-  Widget _buildBottomPlayer(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    final screenWidth = MediaQuery.of(context).size.width;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
+      persistentFooterDecoration: BoxDecoration(
+          // color: _amoledBackground ? Colors.black : null,
+          // color: Colors.transparent,
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          border: Border.all(width: 0)),
+      persistentFooterButtons: [
         GestureDetector(
           onVerticalDragEnd: (details) => _showFullscreenPlayer(context),
           child: StreamBuilder<PlayerState>(
@@ -275,112 +263,229 @@ class _MainScreenState extends State<MainScreen> {
                 onTap: () {
                   _showFullscreenPlayer(context);
                 },
-                child: Card(
-                  // margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20))),
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 12),
-                    child: Column(
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            StreamBuilder<TrackInfo?>(
-                              stream: AudioPlayerService.currentTrackStream,
-                              builder: (context, snapshot) {
-                                final trackInfo = snapshot.data;
-                                final trackName =
-                                    trackInfo?.name ?? 'Now Playing';
-                                final trackImageUrl = trackInfo?.imageUrl;
-                                return Expanded(
-                                  child: Row(
-                                    children: [
-                                      if (trackImageUrl != null &&
-                                          trackImageUrl.isNotEmpty &&
-                                          Uri.tryParse(trackImageUrl)
-                                                  ?.hasAbsolutePath ==
-                                              true)
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: Image.network(
-                                            trackImageUrl,
-                                            width: 50,
-                                            height: 50,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        )
-                                      else
-                                        CircleAvatar(
-                                          radius: 25,
-                                          child: const Icon(Symbols.music_note),
-                                        ),
-                                      SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          trackName,
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Symbols.favorite),
-                              onPressed: () {},
-                            ),
-                            IconButton.filledTonal(
-                              icon: Icon(
-                                playing ? Symbols.pause : Symbols.play_arrow,
-                              ),
-                              onPressed: () {
-                                if (playing) {
-                                  AudioPlayerService.pausePlayback();
-                                } else {
-                                  AudioPlayerService.resume();
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        StreamBuilder<Duration?>(
-                          stream: AudioPlayerService.durationStream,
+                        StreamBuilder<TrackInfo?>(
+                          stream: AudioPlayerService.currentTrackStream,
                           builder: (context, snapshot) {
-                            final duration = snapshot.data ?? Duration.zero;
-                            return StreamBuilder<Duration>(
-                              stream: AudioPlayerService.positionStream,
-                              builder: (context, snapshot) {
-                                final position = snapshot.data ?? Duration.zero;
-                                _sliderValue =
-                                    position.inMilliseconds.toDouble();
-                                return LinearProgressIndicator(
-                                  year2023: false,
-                                  value: duration.inMilliseconds > 0
-                                      ? _sliderValue /
-                                          duration.inMilliseconds.toDouble()
-                                      : 0.0,
-                                );
-                              },
+                            final trackInfo = snapshot.data;
+                            final trackName = trackInfo?.name ?? 'Now Playing';
+                            final trackImageUrl = trackInfo?.imageUrl;
+                            return Expanded(
+                              child: Row(
+                                children: [
+                                  if (trackImageUrl != null &&
+                                      trackImageUrl.isNotEmpty &&
+                                      Uri.tryParse(trackImageUrl)
+                                              ?.hasAbsolutePath ==
+                                          true)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        trackImageUrl,
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  else
+                                    CircleAvatar(
+                                      radius: 25,
+                                      child: const Icon(Symbols.music_note),
+                                    ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      trackName,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                          overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.favorite),
+                          onPressed: () {},
+                        ),
+                        IconButton.filledTonal(
+                          icon: Icon(
+                            playing ? Symbols.pause : Symbols.play_arrow,
+                          ),
+                          onPressed: () {
+                            if (playing) {
+                              AudioPlayerService.pausePlayback();
+                            } else {
+                              AudioPlayerService.resume();
+                            }
                           },
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    StreamBuilder<Duration?>(
+                      stream: AudioPlayerService.durationStream,
+                      builder: (context, snapshot) {
+                        final duration = snapshot.data ?? Duration.zero;
+                        return StreamBuilder<Duration>(
+                          stream: AudioPlayerService.positionStream,
+                          builder: (context, snapshot) {
+                            final position = snapshot.data ?? Duration.zero;
+                            _sliderValue = position.inMilliseconds.toDouble();
+                            return LinearProgressIndicator(
+                              year2023: false,
+                              value: duration.inMilliseconds > 0
+                                  ? _sliderValue /
+                                      duration.inMilliseconds.toDouble()
+                                  : 0.0,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
               );
             },
           ),
         ),
+      ],
+      bottomNavigationBar: _buildBottomPlayer(context),
+      extendBody: true,
+    );
+  }
+
+  Widget _buildBottomPlayer(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // GestureDetector(
+        //   onVerticalDragEnd: (details) => _showFullscreenPlayer(context),
+        //   child: StreamBuilder<PlayerState>(
+        //     stream: AudioPlayerService.playerStateStream,
+        //     builder: (context, snapshot) {
+        //       final playerState = snapshot.data;
+        //       final playing = playerState?.playing ?? false;
+        //       final processingState = playerState?.processingState;
+        //       if (processingState == ProcessingState.idle) {
+        //         return const SizedBox.shrink();
+        //       }
+        //       return GestureDetector(
+        //         onTap: () {
+        //           _showFullscreenPlayer(context);
+        //         },
+        //         child: Card(
+        //           // margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        //           shape: RoundedRectangleBorder(
+        //               borderRadius: BorderRadius.only(
+        //                   topLeft: Radius.circular(20),
+        //                   topRight: Radius.circular(20))),
+        //           margin: EdgeInsets.zero,
+        //           child: Padding(
+        //             padding: const EdgeInsets.symmetric(
+        //                 vertical: 12.0, horizontal: 12),
+        //             child: Column(
+        //               children: [
+        //                 Row(
+        //                   children: [
+        //                     StreamBuilder<TrackInfo?>(
+        //                       stream: AudioPlayerService.currentTrackStream,
+        //                       builder: (context, snapshot) {
+        //                         final trackInfo = snapshot.data;
+        //                         final trackName =
+        //                             trackInfo?.name ?? 'Now Playing';
+        //                         final trackImageUrl = trackInfo?.imageUrl;
+        //                         return Expanded(
+        //                           child: Row(
+        //                             children: [
+        //                               if (trackImageUrl != null &&
+        //                                   trackImageUrl.isNotEmpty &&
+        //                                   Uri.tryParse(trackImageUrl)
+        //                                           ?.hasAbsolutePath ==
+        //                                       true)
+        //                                 ClipRRect(
+        //                                   borderRadius:
+        //                                       BorderRadius.circular(10),
+        //                                   child: Image.network(
+        //                                     trackImageUrl,
+        //                                     width: 50,
+        //                                     height: 50,
+        //                                     fit: BoxFit.cover,
+        //                                   ),
+        //                                 )
+        //                               else
+        //                                 CircleAvatar(
+        //                                   radius: 25,
+        //                                   child: const Icon(Symbols.music_note),
+        //                                 ),
+        //                               SizedBox(width: 8),
+        //                               Expanded(
+        //                                 child: Text(
+        //                                   trackName,
+        //                                   maxLines: 1,
+        //                                   style: TextStyle(
+        //                                       overflow: TextOverflow.ellipsis),
+        //                                 ),
+        //                               ),
+        //                             ],
+        //                           ),
+        //                         );
+        //                       },
+        //                     ),
+        //                     IconButton(
+        //                       icon: const Icon(Symbols.favorite),
+        //                       onPressed: () {},
+        //                     ),
+        //                     IconButton.filledTonal(
+        //                       icon: Icon(
+        //                         playing ? Symbols.pause : Symbols.play_arrow,
+        //                       ),
+        //                       onPressed: () {
+        //                         if (playing) {
+        //                           AudioPlayerService.pausePlayback();
+        //                         } else {
+        //                           AudioPlayerService.resume();
+        //                         }
+        //                       },
+        //                     ),
+        //                   ],
+        //                 ),
+        //                 const SizedBox(height: 8),
+        //                 StreamBuilder<Duration?>(
+        //                   stream: AudioPlayerService.durationStream,
+        //                   builder: (context, snapshot) {
+        //                     final duration = snapshot.data ?? Duration.zero;
+        //                     return StreamBuilder<Duration>(
+        //                       stream: AudioPlayerService.positionStream,
+        //                       builder: (context, snapshot) {
+        //                         final position = snapshot.data ?? Duration.zero;
+        //                         _sliderValue =
+        //                             position.inMilliseconds.toDouble();
+        //                         return LinearProgressIndicator(
+        //                           year2023: false,
+        //                           value: duration.inMilliseconds > 0
+        //                               ? _sliderValue /
+        //                                   duration.inMilliseconds.toDouble()
+        //                               : 0.0,
+        //                         );
+        //                       },
+        //                     );
+        //                   },
+        //                 ),
+        //               ],
+        //             ),
+        //           ),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ),
         if (screenWidth > 600)
           SizedBox(
             height: 20,

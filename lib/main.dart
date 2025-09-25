@@ -35,8 +35,6 @@ Future<void> main() async {
 
   _audioPlayerService = AudioPlayerService.initialize(_audioHandler);
 
-  await _audioPlayerService.loadPlayerState(_audioPlayerService);
-
   await DatabaseService.initDatabase();
 
   final prefs = await SharedPreferences.getInstance();
