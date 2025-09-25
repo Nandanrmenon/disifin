@@ -55,8 +55,8 @@ class AudioPlayerService extends BaseAudioHandler
     });
 
     _audioPlayer.currentIndexStream.listen((index) {
-      if (index != null && index < _audioPlayer.sequence!.length) {
-        final mediaItem = _audioPlayer.sequence![index].tag as MediaItem;
+      if (index != null && index < _audioPlayer.sequence.length) {
+        final mediaItem = _audioPlayer.sequence[index].tag as MediaItem;
         this.mediaItem.add(mediaItem); // Correctly update the mediaItem
       }
     });
@@ -156,7 +156,7 @@ class AudioPlayerService extends BaseAudioHandler
   static Future<void> _savePlayerState() async {
     final prefs = await SharedPreferences.getInstance();
     final currentTrack = _audioPlayer.currentIndex != null
-        ? _audioPlayer.sequence![_audioPlayer.currentIndex!].tag as MediaItem
+        ? _audioPlayer.sequence[_audioPlayer.currentIndex!].tag as MediaItem
         : null;
     if (currentTrack != null) {
       await prefs.setString('currentTrackUrl', currentTrack.id);
@@ -309,7 +309,7 @@ class AudioPlayerService extends BaseAudioHandler
       await _audioPlayer.seekToNext();
       final currentTrack = await _audioPlayer.currentIndexStream.first;
       if (currentTrack != null) {
-        final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
+        final mediaItem = _audioPlayer.sequence[currentTrack].tag as MediaItem;
         currentTrackName = mediaItem.title;
         currentTrackImageUrl = mediaItem.artUri?.toString();
 
@@ -331,7 +331,7 @@ class AudioPlayerService extends BaseAudioHandler
       await _audioPlayer.seekToPrevious();
       final currentTrack = await _audioPlayer.currentIndexStream.first;
       if (currentTrack != null) {
-        final mediaItem = _audioPlayer.sequence![currentTrack].tag as MediaItem;
+        final mediaItem = _audioPlayer.sequence[currentTrack].tag as MediaItem;
         currentTrackName = mediaItem.title;
         currentTrackImageUrl = mediaItem.artUri?.toString();
         _audioPlayer.play().then(
@@ -361,15 +361,14 @@ class AudioPlayerService extends BaseAudioHandler
 
   static List<String> get currentQueue =>
       _audioPlayer.sequence
-          ?.map(
-              (source) => (source.tag as MediaItem?)?.title ?? 'Unknown Track')
+          .map((source) => (source.tag as MediaItem?)?.title ?? 'Unknown Track')
           .toList() ??
       [];
 
   static Stream<TrackInfo?> get currentTrackStream =>
       _audioPlayer.currentIndexStream.map((index) {
-        if (index != null && index < _audioPlayer.sequence!.length) {
-          final mediaItem = _audioPlayer.sequence![index].tag as MediaItem;
+        if (index != null && index < _audioPlayer.sequence.length) {
+          final mediaItem = _audioPlayer.sequence[index].tag as MediaItem;
           return TrackInfo(
             name: mediaItem.title,
             imageUrl: mediaItem.artUri?.toString(),
@@ -381,17 +380,26 @@ class AudioPlayerService extends BaseAudioHandler
 
   static Future<void> authenticate(
       String url, String username, String password) async {
+    // Adopt Jellyfin-style robust login: trim url, include ApiVersion, persist profile
+    const String apiVersion = '10.11.0';
+    const String clientHeader =
+        'MediaBrowser Client="Disifin", Device="Flutter", DeviceId="flutter_app_1", Version="1.0.0"';
+
     try {
+      String baseUrl = url.trim();
+      if (baseUrl.endsWith('/'))
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+
       final response = await http.post(
-        Uri.parse('$url/Users/AuthenticateByName'),
+        Uri.parse('$baseUrl/Users/AuthenticateByName'),
         headers: {
           'Content-Type': 'application/json',
-          'X-Emby-Authorization':
-              'MediaBrowser Client="Disifin", Device="Android", DeviceId="12345", Version="1.0.0"',
+          'X-Emby-Authorization': clientHeader,
         },
         body: jsonEncode({
           'Username': username,
           'Pw': password,
+          'ApiVersion': apiVersion,
         }),
       );
 
@@ -401,17 +409,49 @@ class AudioPlayerService extends BaseAudioHandler
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final accessToken = data['AccessToken'];
+        final userId = data['User']?['Id'];
 
-        // Save the access token and other necessary information
+        // Save details to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', accessToken);
-        await prefs.setString('url', url);
+        await prefs.setString('accessToken', accessToken ?? '');
+        await prefs.setString('url', baseUrl);
         await prefs.setString('username', username);
+        if (userId != null) await prefs.setString('userId', userId);
+
+        // fetch server info if available and save
+        try {
+          final sys = await http.get(Uri.parse('$baseUrl/System/Info/Public'),
+              headers: {'X-Emby-Authorization': clientHeader});
+          if (sys.statusCode == 200) {
+            final sysData = jsonDecode(sys.body);
+            final serverName = sysData['ServerName'];
+            if (serverName != null)
+              await prefs.setString('serverName', serverName);
+          }
+        } catch (_) {}
+
+        // Persist a simple profile record so tryAutoLogin can use it later
+        final profileId = _profileId(baseUrl, username);
+        final profile = jsonEncode({
+          'id': profileId,
+          'serverUrl': baseUrl,
+          'username': username,
+          'password': password,
+          'accessToken': accessToken,
+          'userId': userId,
+        });
+        final profiles = prefs.getStringList('user_profiles') ?? [];
+        profiles.removeWhere((p) => jsonDecode(p)['id'] == profileId);
+        profiles.add(profile);
+        await prefs.setStringList('user_profiles', profiles);
+        await prefs.setString('current_profile_id', profileId);
       } else {
-        debugPrint('Authentication failed: ${response.statusCode}');
+        throw Exception(
+            'Authentication failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       debugPrint('Error during authentication: $e');
+      rethrow;
     }
   }
 
@@ -427,9 +467,45 @@ class AudioPlayerService extends BaseAudioHandler
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+    // Clear current profile selection but keep saved profiles intact
     await prefs.remove('accessToken');
     await prefs.remove('url');
     await prefs.remove('username');
+    await prefs.remove('userId');
+    await prefs.remove('serverName');
+    await prefs.remove('current_profile_id');
+  }
+
+  // Helpers for profile id and auto-login similar to nahcon's JellyfinService
+  static String _profileId(String serverUrl, String username) =>
+      '${serverUrl.trim()}|${username.trim()}';
+
+  static Future<Map<String, dynamic>?> getCurrentProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getString('current_profile_id');
+    if (id == null) return null;
+    final profiles = prefs.getStringList('user_profiles') ?? [];
+    final profile = profiles
+        .map((p) => jsonDecode(p))
+        .firstWhere((p) => p['id'] == id, orElse: () => null);
+    return profile;
+  }
+
+  static Future<bool> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final profile = await getCurrentProfile();
+    if (profile != null) {
+      try {
+        await authenticate(
+            profile['serverUrl'], profile['username'], profile['password']);
+        return true;
+      } catch (e) {
+        // failed to auto-login
+        await prefs.remove('accessToken');
+        return false;
+      }
+    }
+    return false;
   }
 
   static Future<void> _saveHistory() async {
