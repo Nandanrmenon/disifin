@@ -20,6 +20,9 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   double _sliderValue = 0.0;
   int _sliderStyle = 1;
   Color? _dominantColor;
+  String? _lastImageUrl;
+  int _paletteGeneration = 0;
+  static final Map<String, Color> _paletteCache = {};
 
   @override
   void initState() {
@@ -35,13 +38,44 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   }
 
   Future<void> _updateDominantColor(String imageUrl) async {
-    final PaletteGenerator paletteGenerator =
-        await PaletteGenerator.fromImageProvider(
-      NetworkImage(imageUrl),
-    );
-    setState(() {
-      _dominantColor = paletteGenerator.dominantColor?.color;
-    });
+    if (imageUrl.isEmpty) return;
+    // Return cached color immediately if available
+    final cached = _paletteCache[imageUrl];
+    if (cached != null) {
+      if (mounted && cached != _dominantColor) {
+        setState(() {
+          _dominantColor = cached;
+        });
+      }
+      return;
+    }
+    final currentUrl = imageUrl;
+    final myToken = ++_paletteGeneration;
+    try {
+      // Precache to avoid duplicate downloads and speed up palette gen
+      await precacheImage(NetworkImage(currentUrl), context);
+      final PaletteGenerator paletteGenerator =
+          await PaletteGenerator.fromImageProvider(
+        NetworkImage(currentUrl),
+        size: const Size(200, 200),
+        maximumColorCount: 8,
+      );
+      if (!mounted) return;
+      // If a newer generation started, discard this result
+      if (myToken != _paletteGeneration) return;
+      // If the image changed since we started, discard
+      if (_lastImageUrl != currentUrl) return;
+      final color = paletteGenerator.dominantColor?.color;
+      if (color != null && color != _dominantColor) {
+        // store in cache
+        _paletteCache[imageUrl] = color;
+        setState(() {
+          _dominantColor = color;
+        });
+      }
+    } catch (e) {
+      debugPrint('Palette generation failed: $e');
+    }
   }
 
   Widget topBar() {
@@ -69,37 +103,35 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
     );
   }
 
-  Widget albumArt() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    bool imgHover = false;
+  Widget albumArt(double screenWidth) {
+    // imgHover not used
     return StreamBuilder<TrackInfo?>(
       stream: AudioPlayerService.currentTrackStream,
       builder: (context, snapshot) {
         final trackInfo = snapshot.data;
         final trackImageUrl = trackInfo?.imageUrl;
         if (trackImageUrl != null && trackImageUrl.isNotEmpty) {
-          _updateDominantColor(trackImageUrl);
+          // Only trigger palette generation when the image URL changes
+          if (trackImageUrl != _lastImageUrl) {
+            _lastImageUrl = trackImageUrl;
+            // Schedule generation after this frame to avoid blocking builds
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _updateDominantColor(trackImageUrl);
+            });
+          }
           return ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Image.network(
               trackImageUrl,
-              width: screenWidth > 600
-                  ? MediaQuery.of(context).size.width * 0.5
-                  : MediaQuery.of(context).size.width * 0.9,
-              height: screenWidth > 600
-                  ? MediaQuery.of(context).size.width * 0.5
-                  : MediaQuery.of(context).size.width * 0.9,
+              width: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
+              height: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
               fit: BoxFit.cover,
             ),
           );
         } else {
           return SizedBox(
-            width: screenWidth > 600
-                ? MediaQuery.of(context).size.width * 0.5
-                : MediaQuery.of(context).size.width * 0.9,
-            height: screenWidth > 600
-                ? MediaQuery.of(context).size.width * 0.5
-                : MediaQuery.of(context).size.width * 0.9,
+            width: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
+            height: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
             child: const Card(
               child: Icon(Symbols.music_note, size: 200),
             ),
@@ -390,7 +422,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                       SizedBox(
                         width: 24,
                       ),
-                      albumArt(),
+                      albumArt(screenWidth),
                       // SizedBox(
                       //   width: 48,
                       // ),
@@ -421,7 +453,7 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: albumArt(),
+                      child: albumArt(screenWidth),
                     ),
                     const SizedBox(height: 8),
                     Spacer(),
