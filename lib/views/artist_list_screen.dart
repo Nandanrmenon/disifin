@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:disifin/views/artist_songs_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
@@ -176,7 +177,17 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                   ? '$_serverUrl/Items/${artist['Id']}/Images/Primary?tag=${artist['ImageTags']['Primary']}'
                                   : null;
                               return GestureDetector(
-                                onTap: () {
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ArtistSongsScreen(
+                                      artistId: artist['Id'],
+                                      artistName: artist['Name'],
+                                      imageUrl: imageUrl,
+                                    ),
+                                  ),
+                                ),
+                                onLongPress: () {
                                   // Show raw artist JSON for debugging
                                   final pretty =
                                       const JsonEncoder.withIndent('  ')
@@ -287,7 +298,17 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                   artist['Name'] ?? 'Unknown',
                                   maxLines: 1,
                                 ),
-                                onTap: () {
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ArtistSongsScreen(
+                                      artistId: artist['Id'],
+                                      artistName: artist['Name'],
+                                      imageUrl: imageUrl,
+                                    ),
+                                  ),
+                                ),
+                                onLongPress: () {
                                   // Show raw artist JSON for debugging
                                   final pretty =
                                       const JsonEncoder.withIndent('  ')
