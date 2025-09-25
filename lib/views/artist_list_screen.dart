@@ -51,14 +51,18 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
 
     if (url == null || accessToken == null) {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _errorMessage = 'Missing server URL or access token. Please login.';
+          _isLoading = false;
+        });
       }
       return;
     }
 
     try {
+      // Use the AlbumArtists endpoint to retrieve album artists
       final response = await http.get(
-        Uri.parse('$url/Items?IncludeItemTypes=MusicArtist&Recursive=true'),
+        Uri.parse('$url/Artists/AlbumArtists'),
         headers: {
           'Content-Type': 'application/json',
           'X-Emby-Token': accessToken,
@@ -70,22 +74,48 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _artists = data['Items'];
-          });
+        // AlbumArtists endpoint typically returns an object with Items or an array directly.
+        List<dynamic> items;
+        if (data is Map && data['Items'] is List) {
+          items = data['Items'];
+        } else if (data is List) {
+          items = data;
+        } else {
+          items = [];
+        }
+
+        if (items.isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _artists = items;
+            });
+          }
+        } else {
+          final snippet = response.body.length > 300
+              ? '${response.body.substring(0, 300)}...'
+              : response.body;
+          if (mounted) {
+            setState(() {
+              _errorMessage =
+                  'No album artists found. Response snippet:\n$snippet';
+            });
+          }
         }
       } else {
+        final snippet = response.body.length > 300
+            ? '${response.body.substring(0, 300)}...'
+            : response.body;
         if (mounted) {
           setState(() {
-            _errorMessage = 'Failed to load artists.';
+            _errorMessage =
+                'Failed to load artists: HTTP ${response.statusCode}. Response snippet:\n$snippet';
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'An error occurred. Please try again.';
+          _errorMessage = 'An error occurred while fetching artists: $e';
         });
       }
     } finally {
@@ -147,7 +177,26 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                   : null;
                               return GestureDetector(
                                 onTap: () {
-                                  // Handle artist tap
+                                  // Show raw artist JSON for debugging
+                                  final pretty =
+                                      const JsonEncoder.withIndent('  ')
+                                          .convert(artist);
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text(artist['Name'] ?? 'Artist'),
+                                      content: SingleChildScrollView(
+                                        child: Text(pretty),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
                                 child: Column(
                                   crossAxisAlignment:
@@ -239,7 +288,26 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
                                   maxLines: 1,
                                 ),
                                 onTap: () {
-                                  // Handle artist tap
+                                  // Show raw artist JSON for debugging
+                                  final pretty =
+                                      const JsonEncoder.withIndent('  ')
+                                          .convert(artist);
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text(artist['Name'] ?? 'Artist'),
+                                      content: SingleChildScrollView(
+                                        child: Text(pretty),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
                               );
                             },
