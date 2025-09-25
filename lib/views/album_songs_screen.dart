@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:disifin/services/audio_player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
@@ -143,6 +144,26 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                         );
                       },
                     )
+                  else if (_albumArtUrl != null && _albumArtUrl!.isNotEmpty)
+                    Image.network(
+                      _albumArtUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Theme.of(context).primaryColor,
+                          child: Center(
+                            child: Text(
+                              widget.albumName,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
                   else
                     Container(
                       color: Theme.of(context).primaryColor,
@@ -181,24 +202,50 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      // onPressed: () async {
-                      //   // Play all songs
-                      //   for (var song in _songs) {
-                      //     await AudioPlayerService.play(
-                      //       song['Id'],
-                      //       song['Name'],
-                      //       song['AlbumArtist'],
-                      //       _serverUrl!,
-                      //     );
-                      //   }
-                      //   Navigator.pushNamed(context, '/fullscreen_audio_player',
-                      //       arguments: {
-                      //         'trackId': _songs.first['Id'],
-                      //         'trackName': _songs.first['Name'],
-                      //         'trackArtist': _songs.first['AlbumArtist'],
-                      //       });
-                      // },
-                      onPressed: () {},
+                      onPressed: _songs.isEmpty
+                          ? null
+                          : () async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final accessToken =
+                                  prefs.getString('accessToken') ?? '';
+                              final server = _serverUrl ?? '';
+
+                              final List<String> urls = [];
+                              final List<String> trackNames = [];
+                              final List<String> trackImageUrls = [];
+                              final List<String> trackArtists = [];
+
+                              for (final song in _songs) {
+                                final id = song['Id'];
+                                final audioUrl =
+                                    '$server/Audio/$id/stream.mp3?api_key=$accessToken';
+                                final imageUrl = song['ImageTags'] != null &&
+                                        song['ImageTags']['Primary'] != null &&
+                                        server.isNotEmpty
+                                    ? '$server/Items/$id/Images/Primary?tag=${song['ImageTags']['Primary']}'
+                                    : '';
+                                final artist = song['AlbumArtist'] ??
+                                    (song['ArtistItems'] != null &&
+                                            song['ArtistItems'].isNotEmpty
+                                        ? song['ArtistItems'][0]['Name']
+                                        : 'Unknown Artist');
+
+                                urls.add(audioUrl);
+                                trackNames.add(song['Name'] ?? 'Unknown');
+                                trackImageUrls.add(imageUrl);
+                                trackArtists.add(artist);
+                              }
+
+                              await AudioPlayerService().playQueue(urls,
+                                  trackNames, trackImageUrls, trackArtists);
+
+                              // Open fullscreen player to show now playing
+                              if (mounted) {
+                                Navigator.pushNamed(
+                                    context, '/fullscreen_audio_player');
+                              }
+                            },
                       icon: Icon(Symbols.play_arrow),
                       label: Text('Play All'),
                     ),
@@ -206,25 +253,53 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
-                      // onPressed: () async {
-                      //   // Shuffle and play songs
-                      //   _songs.shuffle();
-                      //   for (var song in _songs) {
-                      //     await AudioPlayerService.play(
-                      //       song['Id'],
-                      //       song['Name'],
-                      //       song['AlbumArtist'],
-                      //       _serverUrl!,
-                      //     );
-                      //   }
-                      //   Navigator.pushNamed(context, '/fullscreen_audio_player',
-                      //       arguments: {
-                      //         'trackId': _songs.first['Id'],
-                      //         'trackName': _songs.first['Name'],
-                      //         'trackArtist': _songs.first['AlbumArtist'],
-                      //       });
-                      // },
+                      onPressed: _songs.isEmpty
+                          ? null
+                          : () async {
+                              // Shuffle and play
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final accessToken =
+                                  prefs.getString('accessToken') ?? '';
+                              final server = _serverUrl ?? '';
+
+                              final shuffled = List<dynamic>.from(_songs);
+                              shuffled.shuffle();
+
+                              final List<String> urls = [];
+                              final List<String> trackNames = [];
+                              final List<String> trackImageUrls = [];
+                              final List<String> trackArtists = [];
+
+                              for (final song in shuffled) {
+                                final id = song['Id'];
+                                final audioUrl =
+                                    '$server/Audio/$id/stream.mp3?api_key=$accessToken';
+                                final imageUrl = song['ImageTags'] != null &&
+                                        song['ImageTags']['Primary'] != null &&
+                                        server.isNotEmpty
+                                    ? '$server/Items/$id/Images/Primary?tag=${song['ImageTags']['Primary']}'
+                                    : '';
+                                final artist = song['AlbumArtist'] ??
+                                    (song['ArtistItems'] != null &&
+                                            song['ArtistItems'].isNotEmpty
+                                        ? song['ArtistItems'][0]['Name']
+                                        : 'Unknown Artist');
+
+                                urls.add(audioUrl);
+                                trackNames.add(song['Name'] ?? 'Unknown');
+                                trackImageUrls.add(imageUrl);
+                                trackArtists.add(artist);
+                              }
+
+                              await AudioPlayerService().playQueue(urls,
+                                  trackNames, trackImageUrls, trackArtists);
+
+                              if (mounted) {
+                                Navigator.pushNamed(
+                                    context, '/fullscreen_audio_player');
+                              }
+                            },
                       icon: Icon(Symbols.shuffle),
                       label: Text('Shuffle'),
                     ),
@@ -233,37 +308,35 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final song = _songs[index];
-                return ListTile(
-                  title: Text(song['Name'] ?? 'Unknown'),
-                  subtitle: Text(song['AlbumArtist'] ?? 'Unknown Artist'),
-                  trailing: Icon(Symbols.more_vert),
-                  // onTap: () async {
-                  //   try {
-                  //     await AudioPlayerService.play(
-                  //       song['Id'],
-                  //       song['Name'],
-                  //       song['AlbumArtist'],
-                  //       _serverUrl!,
-                  //     );
-                  //     Navigator.pushNamed(context, '/fullscreen_audio_player',
-                  //         arguments: {
-                  //           'trackId': song['Id'],
-                  //           'trackName': song['Name'],
-                  //           'trackArtist': song['AlbumArtist'],
-                  //         });
-                  //   } catch (e) {
-                  //     print('Error playing audio: $e');
-                  //   }
-                  // },
-                );
-              },
-              childCount: _songs.length,
+          if (_isLoading)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_errorMessage != null)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final song = _songs[index];
+                  return ListTile(
+                    title: Text(song['Name'] ?? 'Unknown'),
+                    subtitle: Text(song['AlbumArtist'] ?? 'Unknown Artist'),
+                    trailing: Icon(Symbols.more_vert),
+                  );
+                },
+                childCount: _songs.length,
+              ),
             ),
-          ),
         ],
       ),
     );

@@ -247,6 +247,7 @@ class _MainScreenState extends State<MainScreen> {
           // color: Colors.transparent,
           color: Theme.of(context).colorScheme.surfaceContainer,
           border: Border.all(width: 0)),
+      persistentFooterAlignment: AlignmentDirectional.center,
       persistentFooterButtons: [
         GestureDetector(
           onVerticalDragEnd: (details) => _showFullscreenPlayer(context),
@@ -257,7 +258,9 @@ class _MainScreenState extends State<MainScreen> {
               final playing = playerState?.playing ?? false;
               final processingState = playerState?.processingState;
               if (processingState == ProcessingState.idle) {
-                return const SizedBox.shrink();
+                return Container(
+                  child: Text('Start Playing'),
+                );
               }
               return GestureDetector(
                 onTap: () {
