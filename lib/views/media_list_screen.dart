@@ -1,8 +1,12 @@
 import 'package:disifin/services/audio_player_service.dart';
 import 'package:disifin/views/album_list_screen.dart';
+import 'package:disifin/views/album_songs_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
+import 'package:disifin/views/artist_songs_screen.dart';
+import 'package:disifin/views/favorites_screen.dart';
 import 'package:disifin/views/track_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MediaListScreen extends StatefulWidget {
   final AudioPlayerService audioPlayerService;
@@ -16,7 +20,12 @@ class MediaListScreen extends StatefulWidget {
 class _MediaListScreenState extends State<MediaListScreen> {
   int _selectedChipIndex = 0;
 
-  final List<String> _chipLabels = ['Tracks', 'Albums', 'Artists'];
+  final List<String> _chipLabels = [
+    'Liked',
+    'Tracks',
+    'Albums',
+    'Artists',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +76,12 @@ class _MediaListScreenState extends State<MediaListScreen> {
   Widget _buildContent() {
     switch (_selectedChipIndex) {
       case 0:
-        return TrackListScreen(audioPlayerService: widget.audioPlayerService);
+        return _buildLiked();
       case 1:
-        return AlbumListScreen();
+        return _buildTracks();
       case 2:
+        return _buildAlbum();
+      case 3:
         return _buildArtists();
       default:
         return _buildTracks();
@@ -81,11 +92,15 @@ class _MediaListScreenState extends State<MediaListScreen> {
     return TrackListScreen(audioPlayerService: widget.audioPlayerService);
   }
 
-  Widget _buildAlbums() {
+  Widget _buildAlbum() {
     return AlbumListScreen();
   }
 
   Widget _buildArtists() {
     return ArtistListScreen();
+  }
+
+  Widget _buildLiked() {
+    return FavoritesScreen(audioPlayerService: widget.audioPlayerService);
   }
 }

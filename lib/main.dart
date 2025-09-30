@@ -7,6 +7,7 @@ import 'package:disifin/services/database_service.dart';
 import 'package:disifin/theme.dart';
 import 'package:disifin/views/album_list_screen.dart';
 import 'package:disifin/views/artist_list_screen.dart';
+import 'package:disifin/views/favorites_screen.dart';
 import 'package:disifin/views/fullscreen_audio_player.dart';
 import 'package:disifin/views/login_screen.dart';
 import 'package:disifin/views/main_screen.dart';
@@ -92,6 +93,9 @@ class MyApp extends StatelessWidget {
                 TrackListScreen(audioPlayerService: audioPlayerService),
             '/albums': (context) => const AlbumListScreen(),
             '/artists': (context) => const ArtistListScreen(),
+            '/favorites': (context) => FavoritesScreen(
+                  audioPlayerService: audioPlayerService,
+                ),
             '/media': (context) =>
                 MediaListScreen(audioPlayerService: audioPlayerService),
             '/search': (context) => const SearchPage(),

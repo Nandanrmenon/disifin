@@ -15,13 +15,25 @@ class TrackInfo {
   final String? name;
   final String? imageUrl;
   final String? artist; // Add artist property
+  final String? id;
+  final String? audioUrl;
+  final String? itemType;
 
-  TrackInfo({this.name, this.imageUrl, this.artist});
+  TrackInfo(
+      {this.name,
+      this.imageUrl,
+      this.artist,
+      this.id,
+      this.audioUrl,
+      this.itemType});
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'imageUrl': imageUrl,
+      'id': id,
+      'audioUrl': audioUrl,
+      'itemType': itemType,
       'artist': artist,
     };
   }
@@ -30,6 +42,9 @@ class TrackInfo {
     return TrackInfo(
       name: json['name'],
       imageUrl: json['imageUrl'],
+      id: json['id'],
+      audioUrl: json['audioUrl'],
+      itemType: json['itemType'],
       artist: json['artist'],
     );
   }
@@ -40,6 +55,8 @@ class AudioPlayerService extends BaseAudioHandler
         QueueHandler, // mix in default queue callback implementations
         SeekHandler {
   static final AudioPlayer _audioPlayer = AudioPlayer();
+  static const String _clientHeader =
+      'MediaBrowser Client="Disifin", Device="Flutter", DeviceId="flutter_app_1", Version="1.0.0"';
   static String? currentTrackName;
   static String? currentTrackImageUrl;
   static final List<TrackInfo> _history = [];
@@ -511,6 +528,131 @@ class AudioPlayerService extends BaseAudioHandler
       }
     }
     return false;
+  }
+
+  // Favorites support
+  static Future<void> setFavorite(String itemId, bool isFavorite) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('accessToken');
+    final userId = prefs.getString('userId');
+    final baseUrl = prefs.getString('url');
+
+    if (userId == null || accessToken == null || baseUrl == null) {
+      debugPrint('[setFavorite] Not authenticated');
+      throw Exception('Not authenticated');
+    }
+
+    // If the provided itemId looks like an audio stream URL, try to extract the server item id
+    String serverItemId = itemId;
+    try {
+      final uri = Uri.parse(itemId);
+      // Expect paths like /Audio/{id}/stream.mp3
+      final segments = uri.pathSegments;
+      final audioIndex = segments.indexOf('Audio');
+      if (audioIndex != -1 && audioIndex + 1 < segments.length) {
+        serverItemId = segments[audioIndex + 1];
+      }
+    } catch (_) {
+      // not a url, keep as-is
+    }
+
+    final url = '$baseUrl/UserFavoriteItems/$serverItemId';
+    http.Response response;
+    if (isFavorite) {
+      debugPrint('[setFavorite] Sending POST to add favorite: $url');
+      response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Emby-Token': accessToken,
+          'X-Emby-Authorization': _clientHeader,
+        },
+      );
+    } else {
+      debugPrint('[setFavorite] Sending DELETE to remove favorite: $url');
+      response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Emby-Token': accessToken,
+          'X-Emby-Authorization': _clientHeader,
+        },
+      );
+    }
+
+    debugPrint('[setFavorite] Response status: ${response.statusCode}');
+    debugPrint('[setFavorite] Response body: ${response.body}');
+
+    if (response.statusCode != 204 && response.statusCode != 200) {
+      debugPrint('[setFavorite] ERROR: ${response.statusCode}');
+      throw Exception('Failed to update favorite: ${response.statusCode}');
+    }
+  }
+
+  static Future<List<TrackInfo>> getFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('accessToken');
+    final userId = prefs.getString('userId');
+    final baseUrl = prefs.getString('url');
+
+    if (userId == null || accessToken == null || baseUrl == null) {
+      throw Exception('Not authenticated');
+    }
+
+    // Request only music-related item types from the server to avoid movies/TV
+    final favUri = Uri.parse(
+        '$baseUrl/Users/$userId/Items?Filters=IsFavorite&Recursive=true&IncludeItemTypes=Audio,MusicAlbum,MusicArtist');
+    final response = await http.get(
+      favUri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Emby-Token': accessToken,
+        'X-Emby-Authorization': _clientHeader,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is Map && data['Items'] is List) {
+        final rawItems = data['Items'] as List;
+        // Client-side filter as a fallback in case the server returns non-music items
+        final musicItems = rawItems.where((item) {
+          final type = (item['Type'] ??
+                  item['CollectionType'] ??
+                  item['MediaType'] ??
+                  '')
+              .toString()
+              .toLowerCase();
+          return type.contains('audio') ||
+              type.contains('music') ||
+              type.contains('track') ||
+              type.contains('album') ||
+              type.contains('artist');
+        }).toList();
+
+        return musicItems.map((item) {
+          final id = item['Id'] as String?;
+          final image = item['ImageTags'] != null &&
+                  item['ImageTags']['Primary'] != null
+              ? '$baseUrl/Items/$id/Images/Primary?tag=${item['ImageTags']['Primary']}'
+              : null;
+          final audio = id != null
+              ? '$baseUrl/Audio/$id/stream.mp3?api_key=$accessToken'
+              : null;
+          return TrackInfo(
+            id: id,
+            name: item['Name'],
+            imageUrl: image,
+            audioUrl: audio,
+            itemType:
+                item['Type'] ?? item['CollectionType'] ?? item['MediaType'],
+            artist: item['AlbumArtist'] ?? item['Artist'] ?? '',
+          );
+        }).toList();
+      }
+      return [];
+    }
+    throw Exception('Failed to load favorites: ${response.statusCode}');
   }
 
   static Future<void> _saveHistory() async {

@@ -387,10 +387,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
                                             Expanded(
                                               child: imageUrl != null
                                                   ? Card(
-                                                      child: ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
+                                                      child: ClipOval(
                                                         child: Image.network(
                                                             imageUrl,
                                                             fit: BoxFit.cover),
@@ -453,9 +450,7 @@ class _TrackListScreenState extends State<TrackListScreen> {
                                           '$_serverUrl/Audio/${track['Id']}/stream.mp3?api_key=$_accessToken';
                                       return ListTile(
                                         leading: imageUrl != null
-                                            ? ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(25),
+                                            ? ClipOval(
                                                 child: SizedBox(
                                                   width: 50,
                                                   height: 50,

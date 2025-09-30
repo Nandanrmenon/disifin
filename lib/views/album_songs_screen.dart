@@ -113,7 +113,7 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 200.0,
+            expandedHeight: 280.0,
             pinned: true,
             backgroundColor:
                 Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -183,7 +183,7 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          Colors.black,
+                          Theme.of(context).colorScheme.surface
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -201,7 +201,7 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: FilledButton.icon(
                       onPressed: _songs.isEmpty
                           ? null
                           : () async {
@@ -246,7 +246,10 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                                     context, '/fullscreen_audio_player');
                               }
                             },
-                      icon: Icon(Symbols.play_arrow),
+                      icon: Icon(
+                        Symbols.play_arrow,
+                        fill: 1,
+                      ),
                       label: Text('Play All'),
                     ),
                   ),
@@ -303,6 +306,24 @@ class _AlbumSongsScreenState extends State<AlbumSongsScreen> {
                       icon: Icon(Symbols.shuffle),
                       label: Text('Shuffle'),
                     ),
+                  ),
+                  SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Symbols.favorite),
+                    onPressed: () async {
+                      try {
+                        await AudioPlayerService.setFavorite(
+                            widget.albumId, true);
+                        if (mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Album added to favorites')));
+                      } catch (e) {
+                        if (mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Failed: $e')));
+                      }
+                    },
                   ),
                 ],
               ),

@@ -93,10 +93,43 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
             style: Theme.of(context).textTheme.labelSmall,
           ),
           const Spacer(),
-          IconButton(
-            onPressed: () => Navigator.push(context,
-                CupertinoSheetRoute(builder: (context) => const SongAction())),
-            icon: Icon(Symbols.more_vert),
+          StreamBuilder<TrackInfo?>(
+            stream: AudioPlayerService.currentTrackStream,
+            builder: (context, snapshot) {
+              final current = snapshot.data;
+              return Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.push(
+                        context,
+                        CupertinoSheetRoute(
+                            builder: (context) => const SongAction())),
+                    icon: Icon(Symbols.more_vert),
+                  ),
+                  IconButton(
+                    onPressed: current?.id == null
+                        ? null
+                        : () async {
+                            try {
+                              await AudioPlayerService.setFavorite(
+                                  current!.id!, true);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Added to favorites')));
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed: $e')));
+                              }
+                            }
+                          },
+                    icon: Icon(Symbols.favorite_border),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -572,14 +605,31 @@ class _SongActionState extends State<SongAction> {
               );
             },
           ),
-          ListTile(
-            leading: Icon(Symbols.favorite),
-            title: Text('Add to Favourites'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    content: Text('Coming soons')),
+          StreamBuilder<TrackInfo?>(
+            stream: AudioPlayerService.currentTrackStream,
+            builder: (context, snapshot) {
+              final current = snapshot.data;
+              return ListTile(
+                leading: Icon(Symbols.favorite),
+                title: Text('Add to Favourites'),
+                onTap: current?.id == null
+                    ? null
+                    : () async {
+                        try {
+                          await AudioPlayerService.setFavorite(
+                              current!.id!, true);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Added to favorites')));
+                            Navigator.pop(context);
+                          }
+                        } catch (e) {
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed: $e')));
+                        }
+                      },
               );
             },
           ),

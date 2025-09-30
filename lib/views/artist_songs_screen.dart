@@ -246,6 +246,23 @@ class _ArtistSongsScreenState extends State<ArtistSongsScreen> {
                           : const Icon(Symbols.album),
                       title: Text(album['Name'] ?? 'Unknown'),
                       subtitle: Text(album['Artist'] ?? widget.artistName),
+                      trailing: IconButton(
+                        icon: const Icon(Symbols.favorite_border),
+                        onPressed: () async {
+                          try {
+                            await AudioPlayerService.setFavorite(
+                                album['Id'], true);
+                            if (mounted)
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Added to favorites')));
+                          } catch (e) {
+                            if (mounted)
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed: $e')));
+                          }
+                        },
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,
