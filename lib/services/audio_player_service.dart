@@ -63,10 +63,10 @@ class AudioPlayerService extends BaseAudioHandler
   static Database? _database;
 
   late final AudioHandler _audioHandler;
-
-  AudioPlayerService();
-
-  AudioPlayerService.initialize(this._audioHandler) {
+  AudioPlayerService() {
+    // Initialize playback state and current media item listeners so the
+    // AudioHandler instance created by AudioService.init will emit states
+    // and drive the platform notification.
     _audioPlayer.playbackEventStream.listen((event) {
       playbackState.add(playbackStateFromEvent(event));
     });
@@ -74,10 +74,47 @@ class AudioPlayerService extends BaseAudioHandler
     _audioPlayer.currentIndexStream.listen((index) {
       if (index != null && index < _audioPlayer.sequence.length) {
         final mediaItem = _audioPlayer.sequence[index].tag as MediaItem;
+        _currentMediaItem = mediaItem;
         this.mediaItem.add(mediaItem); // Correctly update the mediaItem
       }
     });
+
+    // When the audio source reports its duration update the MediaItem so the
+    // platform notification can show a seekbar (it needs mediaItem.duration).
+    _audioPlayer.durationStream.listen((d) {
+      if (d != null && _currentMediaItem != null) {
+        final updated = MediaItem(
+          id: _currentMediaItem!.id,
+          album: _currentMediaItem!.album,
+          title: _currentMediaItem!.title,
+          artUri: _currentMediaItem!.artUri,
+          artist: _currentMediaItem!.artist,
+          duration: d,
+        );
+        _currentMediaItem = updated;
+        mediaItem.add(updated);
+        // Also emit a playback state update so notification UI refreshes. We
+        // construct a PlaybackState from the current player state instead of
+        // relying on internals of the playbackEventStream.
+        playbackState.add(PlaybackState(
+          controls: [
+            MediaControl.skipToPrevious,
+            _audioPlayer.playing ? MediaControl.pause : MediaControl.play,
+            MediaControl.skipToNext,
+            MediaControl.stop,
+          ],
+          androidCompactActionIndices: const [0, 1, 2],
+          processingState: _mapProcessingState(_audioPlayer.processingState),
+          playing: _audioPlayer.playing,
+          updatePosition: _audioPlayer.position,
+          bufferedPosition: _audioPlayer.bufferedPosition,
+          speed: _audioPlayer.speed,
+        ));
+      }
+    });
   }
+
+  MediaItem? _currentMediaItem;
 
   PlaybackState playbackStateFromEvent(PlaybackEvent event) {
     return PlaybackState(

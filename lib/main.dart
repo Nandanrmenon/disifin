@@ -34,7 +34,10 @@ Future<void> main() async {
     ),
   );
 
-  _audioPlayerService = AudioPlayerService.initialize(_audioHandler);
+  // The handler returned by AudioService.init is the active AudioHandler
+  // (our AudioPlayerService). Cast it so the rest of the app can call
+  // instance methods on AudioPlayerService if needed.
+  _audioPlayerService = _audioHandler as AudioPlayerService;
 
   await DatabaseService.initDatabase();
 
