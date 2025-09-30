@@ -152,13 +152,20 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
               _updateDominantColor(trackImageUrl);
             });
           }
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              trackImageUrl,
-              width: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
-              height: screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
-              fit: BoxFit.cover,
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Material(
+              clipBehavior: Clip.antiAlias,
+              elevation: 4.0,
+              borderRadius: BorderRadius.circular(15),
+              child: Image.network(
+                trackImageUrl,
+                width:
+                    screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
+                height:
+                    screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9,
+                fit: BoxFit.cover,
+              ),
             ),
           );
         } else {
@@ -184,21 +191,32 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
         // final trackImageUrl = trackInfo?.imageUrl;
         return Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                trackName,
-                style: Theme.of(context).textTheme.titleLarge,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      trackName,
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // const SizedBox(height: 4),
+                    Text(
+                      trackArtist,
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
               ),
-              // const SizedBox(height: 4),
-              Text(
-                trackArtist,
-                style: Theme.of(context).textTheme.labelMedium,
-                maxLines: 1,
-              ),
+              IconButton(onPressed: () {}, icon: Icon(Symbols.favorite_border))
             ],
           ),
         );
@@ -434,78 +452,76 @@ class _FullscreenAudioPlayerState extends State<FullscreenAudioPlayer> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: screenWidth > 600
-            ? Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (Platform.isMacOS)
-                    SizedBox(
-                      height: 20,
-                    ),
-                  topBar(),
-                  Spacer(),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                      ),
-                      albumArt(screenWidth),
-                      // SizedBox(
-                      //   width: 48,
-                      // ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            musicInfo(),
-                            musicSlider(),
-                            musicControls(),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 24,
-                      ),
-                    ],
+      // backgroundColor: Colors.white,
+      body: screenWidth > 600
+          ? Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (Platform.isMacOS)
+                  SizedBox(
+                    height: 20,
                   ),
-                  Spacer(),
-                  bottomBar(),
-                ],
-              )
-            : SafeArea(
+                topBar(),
+                Spacer(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                    ),
+                    albumArt(screenWidth),
+                    // SizedBox(
+                    //   width: 48,
+                    // ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          musicInfo(),
+                          musicSlider(),
+                          musicControls(),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 24,
+                    ),
+                  ],
+                ),
+                Spacer(),
+                bottomBar(),
+              ],
+            )
+          : Material(
+              color: _dominantColor != null
+                  ? _dominantColor!.withAlpha(50)
+                  : Theme.of(context).colorScheme.surface,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     topBar(),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: albumArt(screenWidth),
-                    ),
-                    const SizedBox(height: 8),
+                    Spacer(),
+                    albumArt(screenWidth),
                     Spacer(),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: musicInfo(),
                     ),
-                    const SizedBox(height: 8),
+                    Spacer(),
                     musicSlider(),
-                    const SizedBox(height: 8),
                     musicControls(),
                     Spacer(),
-                    // const SizedBox(height: 16),
-                    // bottomBar(),
+                    bottomBar(),
                   ],
                 ),
               ),
-      ),
-      bottomNavigationBar: screenWidth > 600 ? null : bottomBar(),
+            ),
+      // bottomNavigationBar: screenWidth > 600 ? null : bottomBar(),
     );
   }
 
